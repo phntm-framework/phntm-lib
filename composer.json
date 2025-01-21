@@ -1,0 +1,27 @@
+{
+    "name": "bchubbweb/phntm-lib",
+    "type": "library",
+    "require": {
+        "symfony/http-foundation": "^7.2",
+        "symfony/routing": "^7.2",
+        "twig/twig": "^3.18",
+        "vlucas/phpdotenv": "^5.6",
+        "relay/relay": "^3.0",
+        "symfony/psr-http-message-bridge": "^7.2",
+        "nyholm/psr7": "^1.8",
+        "middlewares/whoops": "^2.0",
+        "nyholm/psr7-server": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phntm\\Lib\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Billy Chubb",
+            "email": "billy@bchubb.co.uk"
+        }
+    ],
+    "minimum-stability": "stable"
+}
