@@ -2,6 +2,7 @@
 
 namespace Phntm\Lib\Infra\Routing;
 
+use Phntm\Lib\Infra\Debug\Debugger;
 use Bchubbweb\PhntmFramework\Pages\PageInterface;
 use Bchubbweb\PhntmFramework\Pages\Sitemap\Page as Sitemap;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,7 +42,9 @@ class Router
             $this->matcher = new CompiledUrlMatcher($compiledRoutes, $context);
 
         } else {
+            Debugger::getBar()['time']->startMeasure('Router', 'Index Routes');
             $this->indexRoutes();
+            Debugger::getBar()['time']->stopMeasure('Router');
 
             $this->matcher = new UrlMatcher($this->routes, $context);
             if (!isLocal()) {
@@ -143,6 +146,7 @@ class Router
      */
     public function dispatch(): PageInterface | int
     {
+        Debugger::getBar()['time']->startMeasure('Router', 'Dispatch Route');
         try {
             $attributes = $this->matcher->match($this->request->getPathInfo());
 
@@ -183,6 +187,8 @@ class Router
 
             // if any error occurs
             return 500;
+        } finally {
+            Debugger::getBar()['time']->stopMeasure('Router');
         }
     }
 

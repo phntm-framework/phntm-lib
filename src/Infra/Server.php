@@ -9,6 +9,7 @@ use Phntm\Lib\Http\Middleware\Dispatcher;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
 use Middlewares\Whoops;
+use Middlewares\Debugbar;
 use Relay\Relay;
 
 class Server
@@ -17,8 +18,12 @@ class Server
 
     private ServerRequestInterface $request;
 
-    public function __construct()
+    public function __construct(?string $services=null)
     {
+        Debug\Debugger::init();
+
+        Debug\Debugger::getBar()['time']->startMeasure('server-init', 'Server Initialization');
+
         $responseFactory = new Psr17Factory();
         $serverRequestFactory = new ServerRequestCreator(
             $responseFactory, // ServerRequestFactory
@@ -32,12 +37,22 @@ class Server
         // free up 
         $serverRequestFactory = null;
 
-        $this->requestHandler = new Relay([
+        $middleware = [
             new Whoops(),
+            'debug' => (new Debugbar(
+                Debug\Debugger::getBar()
+            ))->inline(),
             new Router($responseFactory),
-
             new Dispatcher($responseFactory), // must go last
-        ]);
+        ];
+
+        if (!Debug\Debugger::$enabled) {
+            unset($middleware['debug']);
+        }
+
+        $this->requestHandler = new Relay($middleware);
+
+        Debug\Debugger::getBar()['time']->stopMeasure('server-init');
     }
 
     public function run(): void
