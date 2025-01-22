@@ -13,7 +13,8 @@
         "nyholm/psr7-server": "^1.1",
         "symfony/console": "^7.2",
         "middlewares/debugbar": "^2.1",
-        "maximebf/debugbar": "^1.23"
+        "maximebf/debugbar": "^1.23",
+        "league/container": "^4.2"
     },
     "autoload": {
         "psr-4": {
