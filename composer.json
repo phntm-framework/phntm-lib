@@ -11,7 +11,9 @@
         "nyholm/psr7": "^1.8",
         "middlewares/whoops": "^2.0",
         "nyholm/psr7-server": "^1.1",
-        "symfony/console": "^7.2"
+        "symfony/console": "^7.2",
+        "middlewares/debugbar": "^2.1",
+        "maximebf/debugbar": "^1.23"
     },
     "autoload": {
         "psr-4": {
