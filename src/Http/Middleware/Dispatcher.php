@@ -2,18 +2,22 @@
 
 namespace Phntm\Lib\Http\Middleware;
 
-use Bchubbweb\PhntmFramework\Pages\PageInterface;
+use Phntm\Lib\Infra\Container;
+use Phntm\Lib\Pages\PageInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
 class Dispatcher implements \Psr\Http\Server\MiddlewareInterface
 {
+    private ResponseFactoryInterface $responseFactory;
     /**
      * Dispatcher constructor.
      * setup the response factory
      *
      * @param ResponseFactoryInterface $responseFactory
      */
-    public function __construct(private ResponseFactoryInterface $responseFactory) {}
+    public function __construct() {
+        $this->responseFactory = Container::get()->get(ResponseFactoryInterface::class);
+    }
 
     /**
      * Renders the page provided by the router, or return a response with an

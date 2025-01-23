@@ -34,14 +34,12 @@ class Debugger
 
             self::$enabled = false;
         }
+
+        self::$bar = new StandardDebugBar();
     }
 
     public static function getBar(): ?DebugBar
     {
-        if (!isset(self::$bar)) {
-            self::$bar = new StandardDebugBar();
-        }
-
         return self::$bar;
     }
 
@@ -55,4 +53,8 @@ class Debugger
         self::getBar()['time']->stopMeasure($name);
     }
 
+    public static function log($message, string $level='info'): void
+    {
+        self::getBar()['messages']->addMessage($message, $level);
+    }
 }

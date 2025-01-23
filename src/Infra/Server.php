@@ -2,48 +2,48 @@
 
 namespace Phntm\Lib\Infra;
 
+use Phntm\Lib\Http\Middleware\Auth;
+use Phntm\Lib\Http\Middleware\Dispatcher;
+use Phntm\Lib\Http\Middleware\Redirect;
+use Phntm\Lib\Http\Middleware\Router;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Phntm\Lib\Http\Middleware\Router;
-use Phntm\Lib\Http\Middleware\Dispatcher;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7Server\ServerRequestCreator;
+use Psr\Http\Message\ResponseFactoryInterface;
 use Middlewares\Whoops;
 use Middlewares\Debugbar;
 use Relay\Relay;
+use function realpath;
 
 class Server
 {
     private RequestHandlerInterface $requestHandler;
 
-    private ServerRequestInterface $request;
-
     public function __construct(?string $services=null)
     {
+        // Phntm services
+        $this->loadServices(realpath(__DIR__ . '/../../services.php'));
+
+        if (null !== $services) {
+            // Site level services
+            $this->loadServices(ROOT . '/' . ltrim($services, '/'));
+        }
+
         Debug\Debugger::init();
 
         Debug\Debugger::getBar()['time']->startMeasure('server-init', 'Server Initialization');
 
-        $responseFactory = new Psr17Factory();
-        $serverRequestFactory = new ServerRequestCreator(
-            $responseFactory, // ServerRequestFactory
-            $responseFactory, // UriFactory
-            $responseFactory, // UploadedFileFactory
-            $responseFactory  // StreamFactory
-        );
-
-        $this->request = $serverRequestFactory->fromGlobals();
-
-        // free up 
-        $serverRequestFactory = null;
-
         $middleware = [
-            new Whoops(),
+            new Whoops(
+                responseFactory: Container::get()->get(ResponseFactoryInterface::class)
+            ),
+            new Redirect(),
             'debug' => (new Debugbar(
                 Debug\Debugger::getBar()
             ))->inline(),
-            new Router($responseFactory),
-            new Dispatcher($responseFactory), // must go last
+            new Redirect(),
+            new Router(),
+            new Auth(),
+            new Dispatcher(),
         ];
 
         if (!Debug\Debugger::$enabled) {
@@ -53,11 +53,14 @@ class Server
         $this->requestHandler = new Relay($middleware);
 
         Debug\Debugger::getBar()['time']->stopMeasure('server-init');
+
     }
 
     public function run(): void
     {
-        $response = $this->requestHandler->handle($this->request);
+        $response = $this->requestHandler->handle(
+            Container::get()->get(ServerRequestInterface::class)
+        );
 
         $http_line = sprintf('HTTP/%s %s %s',
             $response->getProtocolVersion(),
@@ -81,6 +84,16 @@ class Server
 
         while (!$stream->eof()) {
             echo $stream->read(1024 * 8);
+        }
+    }
+
+    public function loadServices(string $services): void
+    {
+        if (file_exists($services)) {
+            $container = Container::get();
+            require_once $services;
+        } else {
+            throw new \Exception('Services file not found at ' . $services);
         }
     }
 }

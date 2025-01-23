@@ -3,7 +3,7 @@
 namespace Phntm\Lib\Infra\Routing;
 
 use Phntm\Lib\Infra\Debug\Debugger;
-use Bchubbweb\PhntmFramework\Pages\PageInterface;
+use Phntm\Lib\Pages\PageInterface;
 use Bchubbweb\PhntmFramework\Pages\Sitemap\Page as Sitemap;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
@@ -32,19 +32,20 @@ class Router
 
     public function __construct(protected Request $request)
     {
-
         $context = (new RequestContext())->fromRequest($this->request);
 
         if (file_exists(self::CACHE_FILE) && !isLocal()) {
+            Debugger::log('Using cached routes', 'info');
 
             $compiledRoutes = $this->getCachedRoutes();
 
             $this->matcher = new CompiledUrlMatcher($compiledRoutes, $context);
 
         } else {
-            Debugger::getBar()['time']->startMeasure('Router', 'Index Routes');
+            Debugger::log('Indexing routes', 'info');
+            Debugger::getBar()['time']->startMeasure('router.index', 'Index Routes');
             $this->indexRoutes();
-            Debugger::getBar()['time']->stopMeasure('Router');
+            Debugger::getBar()['time']->stopMeasure('router.index');
 
             $this->matcher = new UrlMatcher($this->routes, $context);
             if (!isLocal()) {
@@ -146,9 +147,10 @@ class Router
      */
     public function dispatch(): PageInterface | int
     {
-        Debugger::getBar()['time']->startMeasure('Router', 'Dispatch Route');
+        Debugger::getBar()['time']->startMeasure('router.dispatch', 'Dispatch Route');
         try {
             $attributes = $this->matcher->match($this->request->getPathInfo());
+            Debugger::log($attributes, 'info');
 
             if (!class_exists($attributes['_route'])) {
                 throw new \Symfony\Component\Routing\Exception\ResourceNotFoundException('Page not found');
@@ -188,7 +190,7 @@ class Router
             // if any error occurs
             return 500;
         } finally {
-            Debugger::getBar()['time']->stopMeasure('Router');
+            Debugger::getBar()['time']->stopMeasure('router.dispatch');
         }
     }
 

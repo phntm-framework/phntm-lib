@@ -18,7 +18,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Phntm\\Lib\\": "src/"
+            "Phntm\\Lib\\": "src/",
+            "Pages\\": "pages/"
         }
     },
     "authors": [
