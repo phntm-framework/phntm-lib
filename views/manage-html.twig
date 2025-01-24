@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {{ head|raw }}
+        <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    </head>
+    <body class="manage relative min-h-screen bg-gray-100 py-12 px-2 sm:px-6 lg:px-8 {{ body_class|raw }}">
+        <aside class="
+            fixed top-0 left-0 bottom-0 
+            w-64 p-4 px-6
+            bg-white shadow-md
+            text-gray-800
+            border-r border-gray-200
+        ">
+            <nav>
+                <ul class="space-y-2">
+                    <li><a href="?manage" class="block">Dashboard</a></li>
+                    <li><a href="?manage=users" class="block">Users</a></li>
+                    <li><a href="?manage=posts" class="block">Posts</a></li>
+                    <li><a href="?manage=comments" class="block">Comments</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <div class="relative">
+            <main class="max-w-3xl mx-auto">
+                <header class="flex justify-center mb-8">
+                    <h1 class="text-2xl font-bold text-gray-800">Edit Homepage</h1>
+                </header>
+                <form method="post" class="columns-2 columns-xs">
+                    {{ view|raw }}
+                <form>
+            </main>
+            <footer class="fixed bottom-0 left-0 right-0 w-full flex justify-end gap-4 py-1 px-4">
+                <a href="?logout" class="
+                    text-center text-white hover:text-gray-200
+                    bg-slate-500 hover:bg-slate-600
+                    inset-shadow-gray-400 hover:inset-shadow-gray-500
+                    inset-shadow-sm shadow-md hover:shadow-xs
+                    py-0 px-2 rounded-sm
+                    transition-all duration-200 ease-in-out
+                ">Logout</a>
+            </footer>
+        </div>
+    </body>
+</html>

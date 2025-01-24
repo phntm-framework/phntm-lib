@@ -40,6 +40,10 @@ abstract class AbstractPage implements PageInterface
         try {
             if (!isset($this->render_template)) {
                 $template = PHNTM . 'views/html.twig';
+
+                if ($this instanceof Manageable) {
+                    $template = PHNTM . 'views/manage-html.twig';
+                }
             } else {
                 $template = $this->render_template;
             }
@@ -63,6 +67,9 @@ abstract class AbstractPage implements PageInterface
 
             // render_view located in the same directory as the page class
             $this->render_view = $pageDirectory . '/view.twig';
+            if ($this instanceof Manageable) {
+                $this->render_view = $pageDirectory . '/manage.twig';
+            }
             $this->full_render_view = $this->render_view;
 
         } elseif (file_exists($pageDirectory . '/' . $this->render_view)) {
@@ -110,5 +117,10 @@ abstract class AbstractPage implements PageInterface
     final public function renderWith(array $variables): void
     {
         $this->view_variables = array_merge($this->view_variables, $variables);
+    }
+
+    final public static function getManageClassName(): string
+    {
+        return substr(static::class, 0, -4) . 'Manage';
     }
 }

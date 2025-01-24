@@ -5,7 +5,7 @@ namespace Phntm\Lib\Http\Middleware;
 use Psr\Http\Message\ServerRequestInterface;
 use Phntm\Lib\Auth\Attributes\Auth as AuthAttribute;
 use Phntm\Lib\Http\Redirect;
-use Phntm\Lib\Infra\Debug\Debugger;
+use Phntm\Lib\Pages\Manageable;
 use Phntm\Lib\Auth\Pages\Login\Page as LoginPage;
 use Phntm\Lib\Pages\PageInterface;
 use function array_unique;
@@ -75,6 +75,11 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
 
     private function isGuarded(PageInterface $page): bool
     {
+        if ($page instanceof Manageable) {
+            $this->roles = ['admin', 'super'];
+            return true;
+        }
+
         $reflection = new \ReflectionClass($page);
         $attributes = $reflection->getAttributes(AuthAttribute::class);
 

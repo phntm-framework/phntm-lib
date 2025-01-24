@@ -2,8 +2,8 @@
     <h1 class="text-2xl font-bold mb-4">
         Login
     </h1>
-    <input type="text" name="username" placeholder="Username" class="p-2 w-full mb-2 bg-white">
-    <input type="password" name="password" placeholder="Password" class="p-2 w-full mb-2 bg-white">
+    <input required type="text" name="username" placeholder="Username" class="p-2 w-full mb-2 bg-white border border-gray-300 rounded-xs">
+    <input required type="password" name="password" placeholder="Password" class="p-2 w-full mb-2 bg-white border border-gray-300 rounded-xs">
     <div class="w-full flex justify-between items-center">
         <a href="" class="
             text-zinc-600 hover:text-zinc-700
@@ -12,7 +12,7 @@
         ">Forgot password?</a>
 
         <div class="flex gap-2 justify-end">
-            <a href="/auth-login/google" class="
+            <a id="manage-login-google" href="/auth-login/google" class="
                 text-center
                 transition-all duration-200 ease-in-out
                 bg-white hover:bg-gray-200
@@ -21,7 +21,7 @@
                 rounded-sm
                 p-2 w-32
             ">Google</a>
-            <button type="submit" class="
+            <button id="manage-login-submit" type="submit" class="
                 text-center
                 transition-all duration-200 ease-in-out
                 bg-indigo-500 hover:bg-indigo-700

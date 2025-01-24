@@ -6,6 +6,7 @@ use Phntm\Lib\Infra\Debug\Debugger;
 use Phntm\Lib\Infra\Routing\Attributes\Alias;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Pages\PageInterface;
+use Phntm\Lib\Pages\Manageable;
 use Phntm\Lib\Pages\ResolvesDynamicParams;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
@@ -70,91 +71,77 @@ class Router
         $classes = $this->autoload();
 
         foreach ($classes as $pageClass => $path) {
-
-            $reflection = new ReflectionClass($pageClass);
-            if ($reflection->getAttributes('Bchubbweb\PhntmFramework\Router\NotFound')) {
-                $this->notFound = $pageClass;
+            if (is_a($pageClass, Manageable::class, true)) {
                 continue;
             }
-            if ($reflection->getAttributes(Dynamic::class)) {
-                $denoted_namespace = $reflection->getAttributes(Dynamic::class)[0]->getArguments()[0];
-
-                $parts = explode('\\', $denoted_namespace);
-
-                /*
-                $variables = array_filter($parts, function(string $part) {
-                    return (strpos($part, '{') === 0 && strpos($part, '}') === strlen($part) - 1);
-                });
-
-                $variables = array_map(function(string $part) {
-                    return substr($part, 1, strlen($part) - 2);
-                }, $variables);
-
-                $mapped_variables = [];
-
-                foreach ($variables as $variable) {
-                    $default = '';
-                    if (strpos($variable, ':') !== false) {
-                        [$type, $variable] = explode(':', $variable);
-                        $default = match($type) {
-                            'int' => -1,
-                            'string' => '',
-                            'float' => 0.0,
-                            'bool' => false,
-                            'array' => [],
-                            default => '',
-                        };
-                    }
-                    $mapped_variables[$variable] = $default;
-                }
-                */
-
-                $typesafe_parts = array_map(function(string $part) use ($pageClass) {
-                    $type_separator = strpos($part, ':');
-                    if ($type_separator !== false) {
-
-                        $type = explode(':', $part)[0];
-
-                        $part = preg_replace('/{(\w+):([^}]+)}/', '{$2}', $part);
-                        $part = rtrim($part, '}');
-
-                        // determine the regex for the type
-                        $regex = match(ltrim(trim($type), '{')) {
-                            'int' => '[1-9][0-9]*',
-                            'string' => '[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*',
-                            'float' => '\d+\.\d+',
-                            'bool' => 'true|false|1|0|yes|no',
-                            'array' => '\w+',
-                        };
-                         
-                        if (!$regex) {
-                            return;
-                        }
-                        $part .= "<$regex>}";
-                    } else if (is_a($pageClass, ResolvesDynamicParams::class, true)) {
-                        $part = preg_replace('/{(\w+)}/', '$1', $part);
-
-                        if (isset($pageClass::resolveDynamicParams()[$part])) {
-                            $options = $pageClass::resolveDynamicParams()[$part];
-                            $foo = $part . '<' . implode('|', $options) . ">";
-                            $part = '{' . $foo . '}';
-                        }
-                    }
-                    return $part;
-                }, $parts);
-                
-                $typesafe_namespace = implode('\\', $typesafe_parts);
-
-                $this->routes->add($pageClass, new Route(self::n2r($typesafe_namespace)), 2);
-                continue;
-            }
-
-            $route = self::n2r($pageClass);
-            if ($reflection->getAttributes(Alias::class)) {
-                $route = $reflection->getAttributes(Alias::class)[0]->getArguments()[0];
-            }
-            $this->routes->add($pageClass, new Route($route), 4);
+            $this->registerPublicRoute($pageClass);
         }
+    }
+
+    private function registerPublicRoute(string $pageClass): void
+    {
+        $reflection = new ReflectionClass($pageClass);
+        if ($reflection->getAttributes('Bchubbweb\PhntmFramework\Router\NotFound')) {
+            $this->notFound = $pageClass;
+            return;
+        }
+        if ($reflection->getAttributes(Dynamic::class)) {
+            $denoted_namespace = $reflection->getAttributes(Dynamic::class)[0]->getArguments()[0];
+
+            $parts = explode('\\', $denoted_namespace);
+
+            $typesafe_parts = array_map(function(string $part) use ($pageClass) {
+                $type_separator = strpos($part, ':');
+                if ($type_separator !== false) {
+
+                    $type = explode(':', $part)[0];
+
+                    $part = preg_replace('/{(\w+):([^}]+)}/', '{$2}', $part);
+                    $part = rtrim($part, '}');
+
+                    // determine the regex for the type
+                    $regex = match(ltrim(trim($type), '{')) {
+                        'int' => '[1-9][0-9]*',
+                        'string' => '[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*',
+                        'float' => '\d+\.\d+',
+                        'bool' => 'true|false|1|0|yes|no',
+                        'array' => '\w+',
+                    };
+                     
+                    if (!$regex) {
+                        return;
+                    }
+                    $part .= "<$regex>}";
+                } else if (is_a($pageClass, ResolvesDynamicParams::class, true)) {
+                    $part = preg_replace('/{(\w+)}/', '$1', $part);
+
+                    if (isset($pageClass::resolveDynamicParams()[$part])) {
+                        $options = $pageClass::resolveDynamicParams()[$part];
+                        $foo = $part . '<' . implode('|', $options) . ">";
+                        $part = '{' . $foo . '}';
+                    }
+                }
+                return $part;
+            }, $parts);
+            
+            $typesafe_namespace = implode('\\', $typesafe_parts);
+
+            $this->routes->add($pageClass, new Route(self::n2r($typesafe_namespace)), 2);
+            return;
+        }
+
+        $route = self::n2r($pageClass);
+        if ($reflection->getAttributes(Alias::class)) {
+            $route = $reflection->getAttributes(Alias::class)[0]->getArguments()[0];
+        }
+        $this->routes->add($pageClass, new Route($route), 4);
+
+        $manageClassName = $pageClass::getManageClassName();
+        if (class_exists($manageClassName)) {
+            $this->routes->add($manageClassName, new Route('/manage' . $route), 4);
+        }
+
+        return;
     }
 
     /**
