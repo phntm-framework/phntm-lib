@@ -39,10 +39,12 @@ abstract class AbstractPage implements PageInterface
     {
         try {
             if (!isset($this->render_template)) {
-                $this->render_template = 'phntm/View/templates/Document.twig';
+                $template = PHNTM . 'views/html.twig';
+            } else {
+                $template = $this->render_template;
             }
 
-            $this->twig = new TemplateManager($this->render_template);
+            $this->twig = new TemplateManager($template);
         } catch (\Throwable $e) {
             dump($e);
             exit;
