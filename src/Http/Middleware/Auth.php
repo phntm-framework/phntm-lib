@@ -10,6 +10,7 @@ use Phntm\Lib\Auth\Pages\Login\Page as LoginPage;
 use Phntm\Lib\Pages\PageInterface;
 use function array_unique;
 use function gzdecode;
+use function password_verify;
 use function unserialize;
 
 class Auth implements \Psr\Http\Server\MiddlewareInterface
@@ -105,9 +106,25 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
 
     private function handleLogin(ServerRequestInterface $request): void
     {
-        if ($request->getParsedBody() && $request->getParsedBody()['password'] === 'admin') {
+        if ($request->getParsedBody() && isset($request->getParsedBody()['password'])) {
+            $password = $request->getParsedBody()['password'];
+            $username = $request->getParsedBody()['username'];
+
+            $entityManager = \Phntm\Lib\Db\Db::getEntityManager();
+
+            $adminEntity = $entityManager->getRepository(\Phntm\Lib\Db\Entity\Admin::class)
+                ->findOneBy(['username' => $username]);
+
+            if (!$adminEntity) {
+                return;
+            }
+
+            if (!password_verify($password, $adminEntity->getPassword())) {
+                return;
+            }
+
             $cookie = [
-                'auth_id' => '1',
+                'auth_id' => $adminEntity->getId(),
                 'auth_roles' => 'admin|super',
             ];
 

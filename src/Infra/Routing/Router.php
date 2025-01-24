@@ -6,6 +6,7 @@ use Phntm\Lib\Infra\Debug\Debugger;
 use Phntm\Lib\Infra\Routing\Attributes\Alias;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Pages\PageInterface;
+use Phntm\Lib\Pages\ResolvesDynamicParams;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -14,6 +15,7 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Route;
 use ReflectionClass;
+use function var_dump;
 
 /**
  * Handles routing and pages
@@ -79,6 +81,7 @@ class Router
 
                 $parts = explode('\\', $denoted_namespace);
 
+                /*
                 $variables = array_filter($parts, function(string $part) {
                     return (strpos($part, '{') === 0 && strpos($part, '}') === strlen($part) - 1);
                 });
@@ -104,8 +107,9 @@ class Router
                     }
                     $mapped_variables[$variable] = $default;
                 }
+                */
 
-                $typesafe_parts = array_map(function(string $part) {
+                $typesafe_parts = array_map(function(string $part) use ($pageClass) {
                     $type_separator = strpos($part, ':');
                     if ($type_separator !== false) {
 
@@ -127,13 +131,21 @@ class Router
                             return;
                         }
                         $part .= "<$regex>}";
-                    };
+                    } else if (is_a($pageClass, ResolvesDynamicParams::class, true)) {
+                        $part = preg_replace('/{(\w+)}/', '$1', $part);
+
+                        if (isset($pageClass::resolveDynamicParams()[$part])) {
+                            $options = $pageClass::resolveDynamicParams()[$part];
+                            $foo = $part . '<' . implode('|', $options) . ">";
+                            $part = '{' . $foo . '}';
+                        }
+                    }
                     return $part;
                 }, $parts);
                 
                 $typesafe_namespace = implode('\\', $typesafe_parts);
 
-                $this->routes->add($pageClass, new Route(self::n2r($typesafe_namespace), $mapped_variables), 2);
+                $this->routes->add($pageClass, new Route(self::n2r($typesafe_namespace)), 2);
                 continue;
             }
 

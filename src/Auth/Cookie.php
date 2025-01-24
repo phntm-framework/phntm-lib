@@ -4,13 +4,15 @@ namespace Phntm\Lib\Auth;
 
 class Cookie
 {
+    public const NAME = 'pauth';
+
     public static Cookie $instance;
 
     public \stdClass $value;
 
     private function __construct(
         private string $name,
-        string $value,
+        array $value,
         private int $expire = 0,
         private string $path = '/',
         private string $domain = '',
@@ -30,5 +32,30 @@ class Cookie
         }
 
         return self::$instance;
+    }
+
+    public function get(): \stdClass
+    {
+        $value = gzdecode($this->value);
+        $value = unserialize($value);
+
+        return $value;
+    }
+
+    public function set(): void
+    {
+        $value = serialize($this->value);
+        $value = gzencode($value);
+
+        setcookie(
+            $this->name,
+            json_encode($this->value),
+            $this->expire,
+            $this->path,
+            $this->domain,
+            $this->secure,
+            $this->httponly,
+            $this->samesite
+        );
     }
 }

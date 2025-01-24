@@ -2,6 +2,8 @@
 
 namespace Phntm\Lib\Infra;
 
+use Phntm\Lib\Config;
+use Phntm\Lib\Db\Db;
 use Phntm\Lib\Http\Middleware\Auth;
 use Phntm\Lib\Http\Middleware\Dispatcher;
 use Phntm\Lib\Http\Middleware\Redirect;
@@ -18,15 +20,13 @@ class Server
 {
     private RequestHandlerInterface $requestHandler;
 
-    public function __construct(?string $services=null)
-    {
-        // Phntm services
-        $this->loadServices(realpath(__DIR__ . '/../../services.php'));
+    public function __construct(
+        ?string $services=null,
+        ?string $config=null
+    ) {
+        $this->provision($services, $config);
 
-        if (null !== $services) {
-            // Site level services
-            $this->loadServices(ROOT . '/' . ltrim($services, '/'));
-        }
+        Db::init();
 
         Debug\Debugger::init();
 
@@ -54,6 +54,28 @@ class Server
 
         Debug\Debugger::getBar()['time']->stopMeasure('server-init');
 
+    }
+
+    public function provision(
+        ?string $services=null,
+        ?string $config=null
+    ): void {
+
+        $this->loadConfig(realpath(__DIR__ . '/../../config.php'));
+
+        if (null !== $config) {
+            // Site level config
+            $this->loadConfig(ROOT . '/' . ltrim($config, '/'));
+        }
+
+
+        // Phntm services
+        $this->loadServices(realpath(__DIR__ . '/../../services.php'));
+
+        if (null !== $services) {
+            // Site level services
+            $this->loadServices(ROOT . '/' . ltrim($services, '/'));
+        }
     }
 
     public function run(): void
@@ -93,7 +115,16 @@ class Server
             $container = Container::get();
             require_once $services;
         } else {
-            throw new \Exception('Services file not found at ' . $services);
+            throw new \Error('Services file not found at ' . $services);
         }
+    }
+
+    public function loadConfig(string $configFile): void
+    {
+        if (!file_exists($configFile)) {
+            throw new \Error('Config file not found at ' . $configFile);
+        }
+        $config = require_once $configFile;
+        Config::merge($config);
     }
 }

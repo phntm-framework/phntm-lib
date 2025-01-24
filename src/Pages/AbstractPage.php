@@ -53,7 +53,7 @@ abstract class AbstractPage implements PageInterface
 
     abstract public function __invoke(Request $request): void;
 
-    final public function render($request): StreamInterface
+    public function render($request): StreamInterface
     {
         $this($request);
 
