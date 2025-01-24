@@ -8,6 +8,9 @@ use Phntm\Lib\Http\Redirect;
 use Phntm\Lib\Infra\Debug\Debugger;
 use Phntm\Lib\Auth\Pages\Login\Page as LoginPage;
 use Phntm\Lib\Pages\PageInterface;
+use function array_unique;
+use function gzdecode;
+use function unserialize;
 
 class Auth implements \Psr\Http\Server\MiddlewareInterface
 {
@@ -35,9 +38,13 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
 
         $this->handleLogut($request);
 
-        if ($this->isGuarded($page) && !$this->isAuthorized($request)) {
-            Debugger::log('Unauthorized access to guarded page');
-            $request = $request->withAttribute('page', new LoginPage());
+        if (!$this->isGuarded($page)) {
+            return $handler->handle($request);
+        }
+
+        $this->handleLogin($request);
+
+        if (!$this->isAuthorized($request)) {
             return $handler->handle($request->withAttribute('page', new LoginPage()));
         }
 
@@ -46,20 +53,13 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
 
     private function isAuthorized(\Psr\Http\Message\ServerRequestInterface $request): bool
     {
-        if ($request->getParsedBody() && $request->getParsedBody()['password'] === 'admin') {
-            $cookie = [
-                'auth_id' => '1',
-                'auth_roles' => 'admin|super',
-            ];
-            setcookie('pauth', json_encode($cookie), time() + 3600);
-            throw new Redirect($request->getUri()->getPath(), 302);
-        }
-
         if (!isset($request->getCookieParams()[self::AUTH_COOKIE])) {
             return false;
         }
 
-        $cookie = json_decode($request->getCookieParams()[self::AUTH_COOKIE], true);
+        $cookie = $request->getCookieParams()[self::AUTH_COOKIE];
+        $cookie = gzdecode($cookie);
+        $cookie = unserialize($cookie);
 
         if (!isset($cookie['auth_id']) || !isset($cookie['auth_roles'])) {
             return false;
@@ -76,8 +76,8 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
     {
         $reflection = new \ReflectionClass($page);
         $attributes = $reflection->getAttributes(AuthAttribute::class);
+
         if (empty($attributes)) {
-            Debugger::log('No Auth attribute found');
             return false;
         }
 
@@ -88,22 +88,39 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
             $roles = array_merge($roles, $thisRoles);
         }
 
-        $roles = array_unique($roles);
-
-        $this->roles = $roles;
+        $this->roles = array_unique($roles);
 
         return true;
     }
 
     private function handleLogut(ServerRequestInterface $request): void
     {
-        Debugger::log('Checking for logout query param');
-        Debugger::log($request->getQueryParams());
-        // get logout query param
-        if (isset($request->getQueryParams()['logout'])) {
-            Debugger::log('Logging out');
-            setcookie(self::AUTH_COOKIE, '', time() - 3600);
-            throw new Redirect($request->getHeader('referer')[0] ?? '/', 302);
+        if (!isset($request->getQueryParams()['logout'])) {
+            return;
+        }
+
+        setcookie(self::AUTH_COOKIE, '', time() - 3600);
+        throw new Redirect($request->getUri()->getPath(), 302);
+    }
+
+    private function handleLogin(ServerRequestInterface $request): void
+    {
+        if ($request->getParsedBody() && $request->getParsedBody()['password'] === 'admin') {
+            $cookie = [
+                'auth_id' => '1',
+                'auth_roles' => 'admin|super',
+            ];
+
+            $cookie = serialize($cookie);
+            $cookie = gzencode($cookie);
+
+            setcookie(self::AUTH_COOKIE, $cookie, [
+                'expires' => time() + 3600,
+                'path' => '/',
+                'samesite' => 'Strict',
+                'httponly' => true,
+            ]);
+            throw new Redirect($request->getUri()->getPath(), 302);
         }
     }
 }

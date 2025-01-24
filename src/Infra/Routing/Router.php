@@ -3,8 +3,9 @@
 namespace Phntm\Lib\Infra\Routing;
 
 use Phntm\Lib\Infra\Debug\Debugger;
+use Phntm\Lib\Infra\Routing\Attributes\Alias;
+use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Pages\PageInterface;
-use Bchubbweb\PhntmFramework\Pages\Sitemap\Page as Sitemap;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
@@ -73,14 +74,15 @@ class Router
                 $this->notFound = $pageClass;
                 continue;
             }
-            if ($reflection->getAttributes('Bchubbweb\PhntmFramework\Router\Dynamic')) {
-                $denoted_namespace = $reflection->getAttributes('Bchubbweb\PhntmFramework\Router\Dynamic')[0]->getArguments()[0];
+            if ($reflection->getAttributes(Dynamic::class)) {
+                $denoted_namespace = $reflection->getAttributes(Dynamic::class)[0]->getArguments()[0];
 
                 $parts = explode('\\', $denoted_namespace);
 
                 $variables = array_filter($parts, function(string $part) {
                     return (strpos($part, '{') === 0 && strpos($part, '}') === strlen($part) - 1);
                 });
+
                 $variables = array_map(function(string $part) {
                     return substr($part, 1, strlen($part) - 2);
                 }, $variables);
@@ -135,9 +137,12 @@ class Router
                 continue;
             }
 
-            $this->routes->add($pageClass, new Route(self::n2r($pageClass)), 4);
+            $route = self::n2r($pageClass);
+            if ($reflection->getAttributes(Alias::class)) {
+                $route = $reflection->getAttributes(Alias::class)[0]->getArguments()[0];
+            }
+            $this->routes->add($pageClass, new Route($route), 4);
         }
-        $this->routes->add(Sitemap::class, new Route('/sitemap.xml'), 4);
     }
 
     /**
@@ -176,7 +181,7 @@ class Router
                 }
             }
 
-            /** @var Bchubbweb\PhntmFramework\Pages\AbstractPage $page */
+            /** @var PageInterface $page */
             $page = new $route($attributes);
 
             return $page;
@@ -231,6 +236,9 @@ class Router
         $namespace = ltrim($namespace, 'Pages');
 
         $namespace = explode('\\', $namespace);
+        foreach ($namespace as $key => $part) {
+            $namespace[$key] = strtolower(preg_replace('/([a-z])([A-Z])/', '$1-$2', $part));
+        }
         $namespace = implode('/', array_map('lcfirst', $namespace));
         return $namespace;
     }

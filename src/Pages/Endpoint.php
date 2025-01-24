@@ -2,6 +2,7 @@
 
 namespace Phntm\Lib\Pages;
 
+use Psr\Http\Message\StreamInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 abstract class Endpoint implements PageInterface
@@ -22,5 +23,10 @@ abstract class Endpoint implements PageInterface
             return $this->dynamic_params[$name];
         }
         return null;
+    }
+
+    final public function render($request): StreamInterface
+    {
+        $this($request);
     }
 }

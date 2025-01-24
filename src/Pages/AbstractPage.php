@@ -3,7 +3,7 @@
 namespace Phntm\Lib\Pages;
 
 use Phntm\Lib\Infra\Debug\Debugger;
-use Bchubbweb\PhntmFramework\View\TemplateManager;
+use Phntm\Lib\View\TemplateManager;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,8 +17,6 @@ abstract class AbstractPage implements PageInterface
     protected array $view_variables = [];
 
     protected bool $use_template = true;
-
-    //protected bool $is_framework_page = false;
 
     /**
      * Template used for rendering whole document
