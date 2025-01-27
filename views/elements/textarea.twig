@@ -1,0 +1,8 @@
+<div class="form-group">
+    <label for="{{ field.attributes.id }}">{{ field.label }}</label>
+    <textarea
+        {{ attr(field.attributes) }}
+        class="p-2 w-full mb-2 bg-white border border-gray-300 rounded-xs resize-none"
+        rows="3"
+    >{{ field.value }}</textarea>
+</div>

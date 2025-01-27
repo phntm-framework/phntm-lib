@@ -29,6 +29,8 @@ class TemplateManager
             'strict_variables' => true,
         ]);
 
+        $this->environment->addExtension(new Twig\Extension());
+
         if (Debugger::$enabled) {
             $this->environment->addExtension(new \Twig\Extension\DebugExtension());
             $profile = new \Twig\Profiler\Profile();
@@ -52,9 +54,7 @@ class TemplateManager
         $view_directory = dirname($view_location);
 
         try {
-            $this->loader->addPath($view_directory);
-            // update the environment with the new loader
-            $this->environment->setLoader($this->loader);
+            $this->addViewPath($view_directory);
         } catch (\Throwable $e) {
             dump($e);
             exit;
@@ -67,14 +67,19 @@ class TemplateManager
         $template_directory = dirname($template_location);
 
         try {
-            $this->loader->addPath($template_directory);
-            // update the environment with the new loader
-            $this->environment->setLoader($this->loader);
+            $this->addViewPath($template_directory);
         } catch (\Throwable $e) {
             dump($e);
             exit;
         }
 
+    }
+
+    public function addViewPath(string $view_path): void
+    {
+        $this->loader->addPath($view_path);
+        // update the environment with the new loader
+        $this->environment->setLoader($this->loader);
     }
 
     public function renderTemplate(array $data, bool $use_document = true): string

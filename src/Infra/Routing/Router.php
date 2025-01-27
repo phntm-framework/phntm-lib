@@ -5,6 +5,7 @@ namespace Phntm\Lib\Infra\Routing;
 use Phntm\Lib\Infra\Debug\Debugger;
 use Phntm\Lib\Infra\Routing\Attributes\Alias;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
+use Phntm\Lib\Pages\Endpoint;
 use Phntm\Lib\Pages\PageInterface;
 use Phntm\Lib\Pages\Manageable;
 use Phntm\Lib\Pages\ResolvesDynamicParams;
@@ -127,6 +128,11 @@ class Router
             $typesafe_namespace = implode('\\', $typesafe_parts);
 
             $this->routes->add($pageClass, new Route(self::n2r($typesafe_namespace)), 2);
+
+            if ($this->hasManagePage($pageClass)) {
+                $this->routes->add($pageClass::getManageClassName(), new Route('/manage' . self::n2r($typesafe_namespace)), 2);
+            }
+
             return;
         }
 
@@ -136,9 +142,8 @@ class Router
         }
         $this->routes->add($pageClass, new Route($route), 4);
 
-        $manageClassName = $pageClass::getManageClassName();
-        if (class_exists($manageClassName)) {
-            $this->routes->add($manageClassName, new Route('/manage' . $route), 4);
+        if ($this->hasManagePage($pageClass)) {
+            $this->routes->add($pageClass::getManageClassName(), new Route('/manage' . $route), 4);
         }
 
         return;
@@ -323,6 +328,19 @@ class Router
     public function getRoutes(): RouteCollection
     {
         return $this->routes;
+    }
+
+    public function hasManagePage(string $page): bool
+    {
+        if (is_a($page, Endpoint::class, true)) {
+            return false;
+        }
+
+        if (class_exists($page::getManageClassName())) {
+            return true;
+        }
+
+        return false;
     }
 }
 

@@ -2,12 +2,11 @@
 
 namespace Phntm\Lib\Db;
 
-use Doctrine\DBAL\Configuration;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Phntm\Lib\Config;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
+use Doctrine\DBAL\Configuration;
 
 class Db
 {
@@ -15,27 +14,26 @@ class Db
 
     public static Connection $connection;
 
-    public static Configuration $config;
-
     public static function init(): void
     {
         if (self::$isInitialized) {
             throw new \Exception('Db already initialized');
         }
 
-        self::$config = ORMSetup::createAttributeMetadataConfiguration(
-            paths: Config::get()['db']['entity_paths'],
-            isDevMode: true,
-        );
-
         self::$connection = DriverManager::getConnection(
             Config::get()['db']['connection'],
-            self::$config,
         );
+
+        self::$isInitialized = true;
     }
 
-    public static function getEntityManager(): EntityManager
+    public static function getSchemaManager(): AbstractSchemaManager
     {
-        return new EntityManager(self::$connection, self::$config);
+        return self::$connection->createSchemaManager();
+    }
+
+    public static function getConnection(): Connection
+    {
+        return self::$connection;
     }
 }

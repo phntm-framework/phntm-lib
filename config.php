@@ -13,6 +13,9 @@ return [
         'entity_paths' => [
             __DIR__ . '/src/Db/Entity',
         ],
+        'models' => [
+            __DIR__ . '/src/Model/' => 'Phntm\Lib\Model',
+        ],
         'connection' => [
             'driver' => 'pdo_mysql',
             'host' => 'db',

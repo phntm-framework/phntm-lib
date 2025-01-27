@@ -15,7 +15,8 @@ class AdminInit extends Command
     {
         $this
             ->setDescription('Initialize the admin user')
-            ->setHelp('This command initializes the admin user');
+            ->setHelp('This command initializes the admin user')
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

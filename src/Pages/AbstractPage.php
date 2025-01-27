@@ -12,7 +12,7 @@ abstract class AbstractPage implements PageInterface
 {
     use Traits\Meta;
 
-    private TemplateManager $twig;
+    protected TemplateManager $twig;
 
     protected array $view_variables = [];
 
@@ -28,14 +28,14 @@ abstract class AbstractPage implements PageInterface
      */
     protected string|false|null $render_view = null;
 
-    private string $full_render_view;
+    protected string $full_render_view;
 
     /**
      * AbstractPage constructor.
      *
      * @param array $dynamic_params
      */
-    final public function __construct(protected array $dynamic_params = [])
+    public function __construct(protected array $dynamic_params = [])
     {
         try {
             if (!isset($this->render_template)) {
@@ -57,7 +57,7 @@ abstract class AbstractPage implements PageInterface
 
     abstract public function __invoke(Request $request): void;
 
-    public function render($request): StreamInterface
+    public function render(Request $request): StreamInterface
     {
         $this($request);
 
@@ -68,7 +68,7 @@ abstract class AbstractPage implements PageInterface
             // render_view located in the same directory as the page class
             $this->render_view = $pageDirectory . '/view.twig';
             if ($this instanceof Manageable) {
-                $this->render_view = $pageDirectory . '/manage.twig';
+                $this->render_view = $pageDirectory . '/manage-form.twig';
             }
             $this->full_render_view = $this->render_view;
 
