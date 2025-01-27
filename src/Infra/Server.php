@@ -14,6 +14,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Middlewares\Whoops;
 use Middlewares\Debugbar;
 use Relay\Relay;
+use function ob_clean;
 use function realpath;
 
 class Server
@@ -83,6 +84,8 @@ class Server
         $response = $this->requestHandler->handle(
             Container::get()->get(ServerRequestInterface::class)
         );
+
+        ob_clean();
 
         $http_line = sprintf('HTTP/%s %s %s',
             $response->getProtocolVersion(),

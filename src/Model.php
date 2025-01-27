@@ -5,14 +5,12 @@ namespace Phntm\Lib;
 use Phntm\Lib\Model\Attribute as Col;
 use Doctrine\DBAL\Connection;
 use Phntm\Lib\Db\Db;
-use Phntm\Lib\Model\IsFindable;
 use Phntm\Lib\Model\IsDbAware;
 use Phntm\Lib\Model\HasAttributes;
 
 abstract class Model
 {
     use IsDbAware;
-    use IsFindable;
     use HasAttributes;
 
     protected static string $table;
