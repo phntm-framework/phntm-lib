@@ -2,10 +2,13 @@
 
 namespace Phntm\Lib\Commands;
 
+use Phntm\Lib\Config;
 use Phntm\Lib\Db\Db;
+use Phntm\Lib\Model\Admin;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use function password_hash;
 
 class AdminInit extends Command
 {
@@ -21,17 +24,13 @@ class AdminInit extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $entityManager = Db::getEntityManager();
-
-        $admin = new \Phntm\Lib\Db\Entity\Admin(
-            'admin',
-            password_hash('admin', PASSWORD_DEFAULT),
-            bin2hex(random_bytes(32))
+        $admin = new Admin();
+        $admin->username = Config::get()['auth']['admin']['username'];
+        $admin->password = password_hash(
+            Config::get()['auth']['admin']['password'],
+            PASSWORD_DEFAULT
         );
-
-        $entityManager->persist($admin);
-
-        $entityManager->flush();
+        $admin->save();
 
         return Command::SUCCESS;
     }

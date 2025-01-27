@@ -23,7 +23,7 @@ abstract class Model
         hidden: true,
         unsigned: true,
     )]
-    private int $id = 0;
+    public private(set) int $id = 0;
 
     protected bool $isPersisted = false;
 

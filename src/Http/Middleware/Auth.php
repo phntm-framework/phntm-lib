@@ -117,8 +117,7 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
 
             $entityManager = \Phntm\Lib\Db\Db::getEntityManager();
 
-            $adminEntity = $entityManager->getRepository(\Phntm\Lib\Db\Entity\Admin::class)
-                ->findOneBy(['username' => $username]);
+            $adminEntity = \Phntm\Lib\Model\Admin::find(1);
 
             if (!$adminEntity) {
                 return;
