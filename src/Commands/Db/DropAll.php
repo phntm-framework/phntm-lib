@@ -16,8 +16,9 @@ class DropAll extends Command
 {
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $sm = Db::getSchemaManager();
+
         try {
-            $sm = Db::getSchemaManager();
 
             $tables = $sm->listTableNames();
 

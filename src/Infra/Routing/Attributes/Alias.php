@@ -10,7 +10,7 @@ use Attribute;
 #[Attribute]
 class Alias
 {
-    public function __construct(private string $alias)
+    public function __construct(public string $alias)
     {
     }
 }

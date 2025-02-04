@@ -1,8 +1,10 @@
 <div class="form-group">
-    <label for="{{ field.attributes.id }}">{{ field.label }}</label>
+    <label class="block" for="{{ field.attributes.id }}">{{ field.label }}</label>
     <input 
         value="{{ field.value }}"
         {{ attr(field.attributes) }}
-        class="p-2 w-full mb-2 bg-white border border-gray-300 rounded-xs"
-    >
+        class="
+            p-2 w-full mb-2 bg-white border border-solid border-gray-300 rounded-xs
+        {% if 'class' in field|keys %}{{ field.class }}{% endif %}
+    ">
 </div>

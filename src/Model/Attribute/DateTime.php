@@ -5,32 +5,19 @@ namespace Phntm\Lib\Model\Attribute;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class DateTime extends Base
+class DateTime extends Date
 {
     public string $columnType = 'datetime';
 
-    public function __construct(
-        public ?string $label = null,
-        public bool $required = false,
-    ) {
-    }
+    public static string $dbFormat = 'Y-m-d H:i:s';
 
-    public function getDbValue(): mixed
-    {
-        /** @var /DateTime $dt */
-        $dt = parent::getDbValue();
-        return $dt->format('Y-m-d H:i:s');
-    }
+    public static string $formFormat = 'Y-m-d\TH:i';
 
-    public function fromDbValue(mixed $value): mixed
+    public function getFormAttributes(): array
     {
-        return new \DateTime($value);
-    }
+        $input = parent::getFormAttributes();
+        $input['attributes']['type'] = 'datetime-local';
 
-    public function getOptions(): array
-    {
-        return [
-            'length' => 0,
-        ];
+        return $input;
     }
 }

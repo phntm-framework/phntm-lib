@@ -10,7 +10,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
-
 class Redirect implements \Psr\Http\Server\MiddlewareInterface
 {
     public function process(

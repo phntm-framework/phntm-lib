@@ -4,13 +4,50 @@ namespace Phntm\Lib\Pages;
 
 use Phntm\Lib\Infra\Debug\Debugger;
 use Phntm\Lib\View\TemplateManager;
-use Nyholm\Psr7\Stream;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Nyholm\Psr7\Stream;
 
-abstract class AbstractPage extends Renderable
+abstract class Html extends Endpoint implements Renderable
 {
     use Traits\Meta;
+
+    protected TemplateManager $twig;
+
+    protected array $view_variables = [];
+
+    protected bool $use_template = true;
+
+    /**
+     * Template used for rendering whole document
+     */
+    protected string|false|null $render_template = null;
+
+    /**
+     * View used to render page content
+     */
+    protected string|false|null $render_view = null;
+
+    protected string $full_render_view;
+
+    public function __construct(protected array $dynamic_params = [])
+    {
+        try {
+            if (!isset($this->render_template)) {
+                $template = PHNTM . 'views/html.twig';
+
+                if ($this instanceof Manageable) {
+                    $template = PHNTM . 'views/manage-html.twig';
+                }
+            } else {
+                $template = $this->render_template;
+            }
+
+            $this->twig = new TemplateManager($template);
+        } catch (\Throwable $e) {
+            dump($e);
+            exit;
+        }
+    }
 
     public function render(): StreamInterface
     {
@@ -57,18 +94,5 @@ abstract class AbstractPage extends Renderable
         Debugger::stopMeasure('page_render');
 
         return Stream::create($body);
-    }
-
-    public function __get(string $name): mixed
-    {
-        if (array_key_exists($name, $this->dynamic_params)) {
-            return $this->dynamic_params[$name];
-        }
-        return null;
-    }
-
-    final public static function getManageClassName(): string
-    {
-        return substr(static::class, 0, -4) . 'Manage';
     }
 }

@@ -3,6 +3,7 @@
 namespace Phntm\Lib\Http\Middleware;
 
 use Phntm\Lib\Infra\Container;
+use Phntm\Lib\Pages\EndpointInterface;
 use Phntm\Lib\Pages\PageInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
@@ -33,7 +34,7 @@ class Dispatcher implements \Psr\Http\Server\MiddlewareInterface
     ): \Psr\Http\Message\ResponseInterface {
         $page = $request->getAttribute('page', 404);
 
-        if (!$page instanceof PageInterface) {
+        if (!$page instanceof EndpointInterface) {
             return $this->responseFactory->createResponse($page);
         }
 
@@ -41,7 +42,7 @@ class Dispatcher implements \Psr\Http\Server\MiddlewareInterface
         $response = $this->responseFactory->createResponse();
 
         // render the page content
-        $body = $page->render($request->getAttribute('symfonyRequest'));
+        $body = $page->dispatch($request->getAttribute('symfonyRequest'));
 
         if ($body->getSize() === 0) {
             if (!isLocal()) {

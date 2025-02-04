@@ -9,7 +9,7 @@
             {% include 'nav/item.twig' with { trigger: 'pages', href: '', class: 'js-trigger', text: 'Pages' } %}
         </ul>
         <ul class="space-y-2 hidden" data-instance="pages">
-            <li data-back>back</li>
+            <li data-back class="text-sm">Back</li>
             {% include 'nav/item.twig' with { href: '', text: 'Homepage' } %}
             {% include 'nav/item.twig' with { href: '/about', text: 'About' } %}
             {% include 'nav/item.twig' with { href: '/contact', text: 'Contact' } %}

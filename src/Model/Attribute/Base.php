@@ -8,9 +8,17 @@ abstract class Base
 {
     public string $columnType;
 
+    public string $inputTemplate;
+
     public Model $model;
 
     public string $columnName;
+
+
+    // field attributes
+    public bool $hidden = false;
+    public bool $required = false;
+    public ?string $label = null;
 
     public function setModel(Model $model): void
     {
@@ -40,8 +48,29 @@ abstract class Base
         return $this->columnType;
     }
 
+
+    // Value retrieval
+
+    /**
+     * Get the value in its format for the database
+     *
+     * @return mixed
+     */
     public function getDbValue(): mixed
     {
+        return $this->model->{$this->getColumnName()};
+    }
+
+    /**
+     * Get the value in its format for the form
+     *
+     * @return mixed
+     */
+    public function getFormValue(): mixed
+    {
+        if (!isset($this->model->{$this->getColumnName()})) {
+            return null;
+        }
         return $this->model->{$this->getColumnName()};
     }
 
@@ -50,5 +79,36 @@ abstract class Base
         return $value;
     }
 
-    abstract public function getOptions(): array;
+    public function fromFormValue(mixed $value): mixed
+    {
+        return $value;
+    }
+
+
+    public function getOptions(): array
+    {
+        return [];
+    }
+
+
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
+
+    public function getFormAttributes(): array
+    {
+        $values = [
+            'element' => $this->inputTemplate,
+            'label' => ucfirst($this->getColumnName()),
+            'value' => $this->getFormValue(),
+            'attributes' => [
+                'name' => $this->getColumnName(),
+                'id' => $this->model->getTableName() . '.' . $this->getColumnName(),
+            ],
+        ];
+
+        return $values;
+    }
+
 }

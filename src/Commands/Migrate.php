@@ -40,7 +40,7 @@ class Migrate extends Command
                     $this->handleMigration($model, $output);
 
                 } catch (\Exception $e) {
-                    $output->write(' - Failed: ' . $e->getMessage());
+                    $output->write(' - Failed: ' . $e->getMessage(), true);
                     continue;
                 }
 

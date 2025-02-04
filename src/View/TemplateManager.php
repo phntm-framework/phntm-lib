@@ -106,4 +106,9 @@ class TemplateManager
             throw $e;
         }
     }
+
+    public function environment(): \Twig\Environment
+    {
+        return $this->environment;
+    }
 }

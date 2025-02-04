@@ -9,6 +9,8 @@ class Text extends Base
 {
     public string $columnType = 'string';
 
+    public string $inputTemplate = 'input';
+
     public function __construct(
         public ?string $label = null,
         public string $placeholder = '',

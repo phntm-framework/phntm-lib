@@ -4,6 +4,7 @@ namespace Phntm\Lib;
 
 use Phntm\Lib\Model\Attribute as Col;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Phntm\Lib\Db\Db;
 use Phntm\Lib\Model\IsDbAware;
 use Phntm\Lib\Model\HasAttributes;
@@ -17,11 +18,11 @@ abstract class Model
 
     protected static ?string $colPrefix = null;
     
-    #[Col\Integer(
+    #[Col\Id(
         hidden: true,
         unsigned: true,
     )]
-    public private(set) int $id = 0;
+    public int $id = 0;
 
     protected bool $isPersisted = false;
 
@@ -51,7 +52,7 @@ abstract class Model
     public function save(): static
     {
         if ($this->isPersisted) {
-            //$this->update();
+            $this->update();
         } else {
             $this->create();
         }
@@ -70,14 +71,46 @@ abstract class Model
             ->insert(static::getTableName())
         ;
         foreach ($this->getAttributes() as $col => $attribute) {
+            if ($attribute->getColumnName() === 'id') {
+                continue;
+            }
+
             $qb->setValue($attribute->getColumnName(), '?');
+            if (!isset($this->{$col})) {
+                $values[] = null;
+                continue;
+            }
+            $values[] = $attribute->getDbValue();
+        }
+        $qb->setParameters($values);
+
+        dump($qb->getSQL(), $values);
+        $result = $db->executeQuery($qb->getSQL(), $values);
+        dump($result);
+        dd($db->lastInsertId());
+
+        $this->isPersisted = true;
+
+        return $this;
+    }
+
+    public function update(): static
+    {
+        $values = [];
+
+        $db = static::db();
+        $qb = $db->createQueryBuilder();
+
+        $qb
+            ->update(static::getTableName())
+        ;
+        foreach ($this->getAttributes() as $col => $attribute) {
+            $qb->set($attribute->getColumnName(), '?');
             $values[] = $attribute->getDbValue();
         }
         $qb->setParameters($values);
 
         $db->executeQuery($qb->getSQL(), $values);
-
-        $this->isPersisted = true;
 
         return $this;
     }
@@ -108,6 +141,73 @@ abstract class Model
         $instance->load($result->fetchAssociative());
 
         return $instance;
+    }
+
+    public static function query(): QueryBuilder
+    {
+        $instance = new static();
+        $qb = static::db()->createQueryBuilder();
+        $qb->select('id', ...$instance->getAttributeNames())
+            ->from(static::getTableName())
+        ;
+    }
+
+    public static function where(array|string $colOrQuery, mixed $value = null): static|array|null
+    {
+        $instance = new static();
+        $qb = static::db()->createQueryBuilder();
+        $qb->select('id', ...$instance->getAttributeNames())
+            ->from(static::getTableName())
+        ;
+
+        if (is_array($colOrQuery)) {
+            $i = 0;
+            foreach ($colOrQuery as $col => $value) {
+                $qb->andWhere("{$col} = ?");
+                $qb->setParameter($i, $value);
+            }
+        } else {
+            $qb->andWhere("{$colOrQuery} = ?");
+            $qb->setParameter(0, $value);
+        }
+
+        $query = $qb->getSQL();
+
+        $result = static::db()->executeQuery($query, $qb->getParameters());
+
+        if ($result->rowCount() === 0) {
+            return null;
+        }
+
+        if ($result->rowCount() > 1) {
+            $models = [];
+            while ($row = $result->fetchAssociative()) {
+                $instance = new static();
+                $instance->load($row);
+                $models[] = $instance;
+            }
+
+            return $models;
+        }
+
+        $instance->load($result->fetchAssociative());
+        return $instance;
+    }
+
+    public static function fromQuery(QueryBuilder $qb): array
+    {
+        $values = $qb->getParameters();
+
+        $query = $qb->getSQL();
+
+        Db::getConnection()->executeQuery($query, $values);
+        while ($row = $result->fetchAssociative()) {
+            $instance = new static();
+            $instance->load($row);
+            $models[] = $instance;
+        }
+
+        return $models;
     }
 
     public static function all(): array

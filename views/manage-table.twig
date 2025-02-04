@@ -1,0 +1,32 @@
+<section class="w-full h-full">
+    <div class="w-full py-2 flex justify-between items-center mb-6">
+        <h2 class="
+            text-2xl font-bold text-gray-800
+        ">{{ entity }}</h2>
+        <a href="{{ links.create }}" id="manage-login-submit" class="
+            text-center
+            transition-all duration-200 ease-in-out
+            bg-indigo-500 hover:bg-indigo-700
+            inset-shadow-indigo-400 hover:inset-shadow-indigo-600
+            inset-shadow-sm shadow-md hover:shadow-xs
+            text-white hover:text-gray-200
+            rounded-sm
+            p-2 w-32
+        ">New</a>
+    </div>
+    <table class="w-full border-collapse border border-gray-300">
+        <tr class="bg-gray-100">
+            <th class="">Slug</th>
+            <th>Actions</th>
+        </tr>
+        {% for row in entities %}
+            <tr class="bg-white border border-b border-gray-300">
+                <td>{{ row.slug }}</td>
+                <td class="flex justify-end">
+                    <a href="/manage/examples/{{ row.slug }}" class="text-indigo-500">Edit</a>
+                    <a href="/manage/examples/delete/{{ row.id }}" class="text-red-500">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</section>

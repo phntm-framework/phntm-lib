@@ -11,9 +11,7 @@ trait Meta
 
     protected array $body_classes = [];
 
-    protected string $title = 'Change me';
-
-    protected string $contentType = 'text/html';
+    protected string $title = '';
 
     protected function title(string $title): void
     {
@@ -53,17 +51,5 @@ trait Meta
             'head' => $this->head(),
             'body_class' => $this->bodyClasses(),
         ];
-    }
-
-    final protected function withContentType(string $type): self
-    {
-        $this->contentType = $type;
-
-        return $this;
-    }
-
-    final public function getContentType(): string
-    {
-        return $this->contentType;
     }
 }

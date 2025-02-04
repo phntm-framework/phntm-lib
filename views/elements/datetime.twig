@@ -4,8 +4,10 @@
         class="block"
     >{{ field.label }}</label>
     <input 
+        type="datetime-local"
         {{ attr(field.attributes) }}
         value="{{ field.value }}" 
+        name="{{ field.attributes.name }}" 
         class="
         p-2 mb-4
         border border-solid border-gray-300 rounded-xs

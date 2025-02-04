@@ -6,6 +6,7 @@ use Phntm\Lib\Infra\Debug\Debugger;
 use Phntm\Lib\Infra\Routing\Attributes\Alias;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Pages\Endpoint;
+use Phntm\Lib\Pages\EndpointInterface;
 use Phntm\Lib\Pages\PageInterface;
 use Phntm\Lib\Pages\Manageable;
 use Phntm\Lib\Pages\ResolvesDynamicParams;
@@ -17,6 +18,7 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Route;
 use ReflectionClass;
+use function in_array;
 use function var_dump;
 
 /**
@@ -27,13 +29,19 @@ use function var_dump;
  */
 class Router
 {
-    const CACHE_FILE = ROOT . '/tmp/cache/routes.php';
+    private const CACHE_FILE = ROOT . '/tmp/cache/routes.php';
+    private const STATIC_SEGMENT_WEIGHT = 256;  // 2^8
+    private const DYNAMIC_SEGMENT_WEIGHT = 16;  // 2^4
+    private const POSITION_MULTIPLIER = 8;  // 2^3
 
     public RouteCollection $routes;
 
     private UrlMatcher $matcher;
 
     public ?string $notFound = null;
+
+    public array $registeredManagePages = [];
+    public array $unregisteredManagePages = [];
 
     public function __construct(protected Request $request)
     {
@@ -72,81 +80,10 @@ class Router
         $classes = $this->autoload();
 
         foreach ($classes as $pageClass => $path) {
-            if (is_a($pageClass, Manageable::class, true)) {
-                continue;
+            if (is_a($pageClass, Endpoint::class, true)) {
+                $pageClass::registerRoutes($this->routes);
             }
-            $this->registerPublicRoute($pageClass);
         }
-    }
-
-    private function registerPublicRoute(string $pageClass): void
-    {
-        $reflection = new ReflectionClass($pageClass);
-        if ($reflection->getAttributes('Bchubbweb\PhntmFramework\Router\NotFound')) {
-            $this->notFound = $pageClass;
-            return;
-        }
-        if ($reflection->getAttributes(Dynamic::class)) {
-            $denoted_namespace = $reflection->getAttributes(Dynamic::class)[0]->getArguments()[0];
-
-            $parts = explode('\\', $denoted_namespace);
-
-            $typesafe_parts = array_map(function(string $part) use ($pageClass) {
-                $type_separator = strpos($part, ':');
-                if ($type_separator !== false) {
-
-                    $type = explode(':', $part)[0];
-
-                    $part = preg_replace('/{(\w+):([^}]+)}/', '{$2}', $part);
-                    $part = rtrim($part, '}');
-
-                    // determine the regex for the type
-                    $regex = match(ltrim(trim($type), '{')) {
-                        'int' => '[1-9][0-9]*',
-                        'string' => '[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*',
-                        'float' => '\d+\.\d+',
-                        'bool' => 'true|false|1|0|yes|no',
-                        'array' => '\w+',
-                    };
-                     
-                    if (!$regex) {
-                        return;
-                    }
-                    $part .= "<$regex>}";
-                } else if (is_a($pageClass, ResolvesDynamicParams::class, true)) {
-                    $part = preg_replace('/{(\w+)}/', '$1', $part);
-
-                    if (isset($pageClass::resolveDynamicParams()[$part])) {
-                        $options = $pageClass::resolveDynamicParams()[$part];
-                        $foo = $part . '<' . implode('|', $options) . ">";
-                        $part = '{' . $foo . '}';
-                    }
-                }
-                return $part;
-            }, $parts);
-            
-            $typesafe_namespace = implode('\\', $typesafe_parts);
-
-            $this->routes->add($pageClass, new Route(self::n2r($typesafe_namespace)), 2);
-
-            if ($this->hasManagePage($pageClass)) {
-                $this->routes->add($pageClass::getManageClassName(), new Route('/manage' . self::n2r($typesafe_namespace)), 2);
-            }
-
-            return;
-        }
-
-        $route = self::n2r($pageClass);
-        if ($reflection->getAttributes(Alias::class)) {
-            $route = $reflection->getAttributes(Alias::class)[0]->getArguments()[0];
-        }
-        $this->routes->add($pageClass, new Route($route), 4);
-
-        if ($this->hasManagePage($pageClass)) {
-            $this->routes->add($pageClass::getManageClassName(), new Route('/manage' . $route), 4);
-        }
-
-        return;
     }
 
     /**
@@ -154,12 +91,15 @@ class Router
      *
      * @returns PageInterface | int
      */
-    public function dispatch(): PageInterface | int
+    public function dispatch(): EndpointInterface | int
     {
         Debugger::getBar()['time']->startMeasure('router.dispatch', 'Dispatch Route');
         try {
             $attributes = $this->matcher->match($this->request->getPathInfo());
             Debugger::log($attributes, 'info');
+
+            $parts = explode('::', $attributes['_route']);
+            $attributes['_route'] = $parts[0];
 
             if (!class_exists($attributes['_route'])) {
                 throw new \Symfony\Component\Routing\Exception\ResourceNotFoundException('Page not found');
@@ -168,25 +108,12 @@ class Router
             $route = $attributes['_route'];
             unset($attributes['_route']);
 
-            $reflection = new ReflectionClass($route);
-
-            // handle request method restrictions
-            if ($reflection->getAttributes('Bchubbweb\PhntmFramework\Router\Method')) {
-
-                $arguments = $reflection->getAttributes('Bchubbweb\PhntmFramework\Router\Method')[0]->getArguments();
-
-                $methods = $arguments[0];
-                $allow = isset($arguments[1]) ? $arguments[1] : true;
-
-                $matches = in_array($this->request->getMethod(), $methods);
-
-                if ($matches !== $allow) {
-                    return 405;
-                }
-            }
-
-            /** @var PageInterface $page */
+            /** @var EndpointInterface $page */
             $page = new $route($attributes);
+
+            if (isset($parts[1])) {
+                $page->matchedAction = $parts[1];
+            }
 
             return $page;
 
@@ -330,17 +257,33 @@ class Router
         return $this->routes;
     }
 
-    public function hasManagePage(string $page): bool
+    public static function calcRoutePriority(string $path): int
     {
-        if (is_a($page, Endpoint::class, true)) {
-            return false;
+        // Remove leading/trailing slashes and split into segments
+        $segments = array_filter(explode('/', trim($path, '/')));
+        
+        if (empty($segments)) {
+            return 0;
         }
 
-        if (class_exists($page::getManageClassName())) {
-            return true;
+        $priority = 0;
+        $position = count($segments);
+
+        foreach ($segments as $segment) {
+            // Check if segment is dynamic (contains {} characters)
+            $isDynamic = preg_match('/\{.*\}/', $segment);
+            
+            // Base segment score based on type
+            $segmentScore = $isDynamic 
+                ? self::DYNAMIC_SEGMENT_WEIGHT 
+                : self::STATIC_SEGMENT_WEIGHT;
+            
+            // Add position-weighted score
+            $priority += $segmentScore + ($position * self::POSITION_MULTIPLIER);
+            
+            $position--;
         }
 
-        return false;
+        return $priority;
     }
 }
-

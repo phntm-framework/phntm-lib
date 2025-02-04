@@ -1,21 +1,22 @@
-<form method="post" class="h-full">
-    <fieldset class="">
-        <input type="hidden" name="id" value="}">
-        <legend class="
-            text-2xl font-bold text-gray-800 mb-6
-        ">{{ entity }}</legend>
-        {% for field in form %}
-            {% include 'elements/' ~ field.element ~ '.twig' with field %}
-        {% endfor %}
-        <button id="manage-login-submit" type="submit" class="
-            text-center
-            transition-all duration-200 ease-in-out
-            bg-indigo-500 hover:bg-indigo-700
-            inset-shadow-indigo-400 hover:inset-shadow-indigo-600
-            inset-shadow-sm shadow-md hover:shadow-xs
-            text-white hover:text-gray-200
-            rounded-sm
-            p-2 w-32
-        ">Save</button>
-    </fieldset>
-<form>
+<section class="max-w-3xl mr-auto h-full">
+    <form method="POST" class="h-full">
+        <fieldset class="">
+            <legend class="
+                text-2xl font-bold text-gray-800 mb-6
+            ">{{ entity }}</legend>
+            {% for field in form %}
+                {% include 'elements/' ~ field.element ~ '.twig' with field %}
+            {% endfor %}
+            <button id="manage-login-submit" type="submit" class="
+                text-center
+                transition-all duration-200 ease-in-out
+                bg-indigo-500 hover:bg-indigo-700
+                inset-shadow-indigo-400 hover:inset-shadow-indigo-600
+                inset-shadow-sm shadow-md hover:shadow-xs
+                text-white hover:text-gray-200
+                rounded-sm
+                p-2 w-32
+            ">Save</button>
+        </fieldset>
+    <form>
+</section>

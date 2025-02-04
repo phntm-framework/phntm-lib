@@ -115,20 +115,19 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
             $password = $request->getParsedBody()['password'];
             $username = $request->getParsedBody()['username'];
 
-            $entityManager = \Phntm\Lib\Db\Db::getEntityManager();
-
             $adminEntity = \Phntm\Lib\Model\Admin::find(1);
 
             if (!$adminEntity) {
+                dd('Admin not found');
                 return;
             }
 
-            if (!password_verify($password, $adminEntity->getPassword())) {
+            if (!password_verify($password, $adminEntity->password)) {
                 return;
             }
 
             $cookie = [
-                'auth_id' => $adminEntity->getId(),
+                'auth_id' => $adminEntity->id,
                 'auth_roles' => 'admin|super',
             ];
 

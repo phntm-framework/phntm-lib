@@ -9,6 +9,8 @@ class TextArea extends Base
 {
     public string $columnType = 'text';
 
+    public string $inputTemplate = 'textarea';
+
     public function __construct(
         public ?string $label = null,
         public int $rows = 3,

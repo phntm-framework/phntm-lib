@@ -22,24 +22,9 @@ trait IsDbAware
 
     public static function createTable(): void
     {
-        $sm = Db::getSchemaManager(); $schema = new Schema();
-        $table = $schema->createTable(static::getTableName());
+        $sm = Db::getSchemaManager();
 
-        /** @var Phntm\Lib\Model $model */
-        $model = new static();
-
-        $table->addColumn('id', 'integer', [
-            'autoincrement' => true
-        ]);
-        $table->setPrimaryKey(['id'], 'id');
-
-        foreach ($model->getAttributes() as $attribute) {
-            $table->addColumn(
-                $attribute->getColumnName(), 
-                $attribute->getColumnType(),
-                $attribute->getOptions()
-            );
-        }
+        $table = static::getCurrentSchema();
 
         $sm->createTable($table);
     }
@@ -59,18 +44,15 @@ trait IsDbAware
         $schema = new Schema();
         $table = $schema->createTable(static::getTableName());
 
-        $table->addColumn('id', 'integer', [
-            'autoincrement' => true
-        ]);
-        $table->setPrimaryKey(['id'], 'id');
-
         foreach ((new static())->getAttributes() as $attribute) {
             $table->addColumn(
                 $attribute->getColumnName(),
                 $attribute->getColumnType(),
-                $attribute->getOptions()
+                [...$attribute->getOptions(), 'notnull' => false]
             );
         }
+
+        $table->setPrimaryKey(['id'], 'id');
 
         return $table;
     }

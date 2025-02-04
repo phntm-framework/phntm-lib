@@ -1,8 +1,14 @@
 <div class="form-group">
-    <label for="{{ field.attributes.id }}">{{ field.label }}</label>
+    <label 
+        for="{{ field.attributes.id }}"
+        class="block"
+    >{{ field.label }}</label>
     <textarea
         {{ attr(field.attributes) }}
-        class="p-2 w-full mb-2 bg-white border border-gray-300 rounded-xs resize-none"
+        class="
+        p-2 w-full mb-2 bg-white border border-solid border-gray-300 rounded-xs resize-vertical
+        {% if 'class' in field|keys %}{{ field.class }}{% endif %}
+        "
         rows="3"
     >{{ field.value }}</textarea>
 </div>

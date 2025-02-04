@@ -9,6 +9,8 @@ class Integer extends Base
 {
     public string $columnType = 'integer';
 
+    public string $inputTemplate = 'input';
+
     public function __construct(
         public ?string $label = null,
         public string $placeholder = '',
@@ -24,5 +26,10 @@ class Integer extends Base
         return [
             'length' => $this->size,
         ];
+    }
+
+    public function isHidden(): bool
+    {
+        return $this->hidden;
     }
 }
