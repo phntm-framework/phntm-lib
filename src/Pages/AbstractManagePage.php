@@ -38,30 +38,39 @@ abstract class AbstractManagePage extends RichPage implements Manageable
         ]);
     }
 
+    abstract protected function resolveEntityIdentifier(): null|int|array;
+    abstract protected function handleEntityNotFound(): void;
+
     public function dispatch(Request $request): StreamInterface
     {
-        $this->getEntityInstance();
+        $this->entity = $this->getEntityInstance();
         return parent::dispatch($request);
     }
 
     protected function getEntityInstance(): Model|null
     {
+        $identifier = $this->resolveEntityIdentifier();
+        $key = array_key_first($identifier);
         $db = Db::getConnection();
         $qb = $db->createQueryBuilder();
         $qb->select('*')
-            ->from($this->entityClass::getTableName());
+            ->from($this->entityClass::getTableName())
+            ->where($key . ' = :identifier')
+            ->setMaxResults(1)
+            ->setParameter('identifier', $identifier[$key])
+        ;
 
         $result = $db
             ->executeQuery($qb->getSQL(), $qb->getParameters())
-            ->fetchAssociative();
+            ->fetchAssociative()
+        ;
 
-        $this->entityClass::where($this->entityResolutionIdentifier, $result[$this->entityResolutionIdentifier]);
+        if (!$result) {
+            $this->handleEntityNotFound();
+            return $this->entity;
+        }
 
-        $entity = new $this->entityClass;
-
-        $entity->load($result);
-
-        dd($result, $entity);
+        $entity = $this->entityClass::where($this->entityResolutionIdentifier, $result[$this->entityResolutionIdentifier]);
 
         return $entity ? $entity : null;
     }
@@ -88,10 +97,9 @@ abstract class AbstractManagePage extends RichPage implements Manageable
     {
         $route = parent::resolveBaseRoute();
         $pathParts = explode('/', ltrim($route['path'], '/'));
-        if (end($pathParts) === 'Manage') {
+        if (end($pathParts) === 'manage') {
             array_pop($pathParts);
         }
-        // remove last part of the path
         // add manage to the start of the path
         array_unshift($pathParts, 'manage');
         $route['path'] = '/' . implode('/', $pathParts);

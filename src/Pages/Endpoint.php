@@ -82,12 +82,20 @@ abstract class Endpoint implements EndpointInterface, HasResolvableParts
     }
 
 
-    public function resolveDynamicParts(array $dynamic_parts): array
-    {
-        return [];
-    }
-
     public function registerPartResolver(string $part, callable $resolver): void
     {
+        $this->dynamic_params[$part] = $resolver($this->dynamic_params);
+    }
+
+    public static function url(array $params = []): string
+    {
+        $route = static::resolveBaseRoute();
+        $url = $route['path'];
+
+        foreach ($params as $key => $value) {
+            $url = str_replace('{' . $key . '}', $value, $url);
+        }
+
+        return $url;
     }
 }

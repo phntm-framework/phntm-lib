@@ -84,10 +84,7 @@ abstract class Model
         }
         $qb->setParameters($values);
 
-        dump($qb->getSQL(), $values);
         $result = $db->executeQuery($qb->getSQL(), $values);
-        dump($result);
-        dd($db->lastInsertId());
 
         $this->isPersisted = true;
 
@@ -96,21 +93,22 @@ abstract class Model
 
     public function update(): static
     {
-        $values = [];
-
         $db = static::db();
         $qb = $db->createQueryBuilder();
 
         $qb
             ->update(static::getTableName())
+            ->where('id = :id')
+            ->setParameter('id', $this->id)
         ;
         foreach ($this->getAttributes() as $col => $attribute) {
-            $qb->set($attribute->getColumnName(), '?');
-            $values[] = $attribute->getDbValue();
+            if ($attribute->getColumnName() === 'id') {
+                continue;
+            }
+            $qb->set($attribute->getColumnName(), ':'. $attribute->getColumnName());
+            $qb->setParameter($attribute->getColumnName(), $attribute->getDbValue());
         }
-        $qb->setParameters($values);
-
-        $db->executeQuery($qb->getSQL(), $values);
+        $db->executeQuery($qb->getSQL(), $qb->getParameters());
 
         return $this;
     }
@@ -212,11 +210,48 @@ abstract class Model
 
     public static function all(): array
     {
-        return [];
+        $instance = new static();
+        $qb = static::db()->createQueryBuilder();
+        $qb->select('id', ...$instance->getAttributeNames())
+            ->from(static::getTableName())
+        ;
+
+        $query = $qb->getSQL();
+
+        $result = static::db()->executeQuery($query);
+
+        $models = [];
+        while ($row = $result->fetchAssociative()) {
+            $instance = new static();
+            $instance->load($row);
+            $models[] = $instance;
+        }
+
+        return $models;
     }
 
     public static function db(): Connection
     {
         return Db::getConnection();
+    }
+
+    public static function getTableColumns(): array
+    {
+        return [];
+    }
+
+    public function injectToUrl(string $url): string
+    {
+        // get parts in {curly braces}
+        preg_match_all('/\{([^}]+)\}/', $url, $matches);
+        foreach ($matches[1] as $match) {
+            $url = str_replace('{' . $match . '}', $this->$match, $url);
+        }
+
+        return $url;
+    }
+
+    public function setupHooks(): void
+    {
     }
 }

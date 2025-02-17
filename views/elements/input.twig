@@ -5,6 +5,10 @@
         {{ attr(field.attributes) }}
         class="
             p-2 w-full mb-2 bg-white border border-solid border-gray-300 rounded-xs
+            transition-all duration-100 ease-in-out
+            hover:border-gray-400
+            focus:outline
+            focus:outline-indigo-500
         {% if 'class' in field|keys %}{{ field.class }}{% endif %}
     ">
 </div>

@@ -2,6 +2,7 @@
 
 namespace Phntm\Lib\Auth\Pages\Login;
 
+use Phntm\Lib\Config;
 use Phntm\Lib\Pages\AbstractPage;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -15,5 +16,9 @@ class Page extends AbstractPage
         $this->title('Login');
 
         $this->withScript('https://unpkg.com/@tailwindcss/browser@4');
+
+        $this->renderWith([
+            'google_enabled' => Config::get()['auth']['providers']['google']['enabled'],
+        ]);
     }
 }

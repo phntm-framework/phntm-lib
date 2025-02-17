@@ -1,0 +1,37 @@
+<div class="form-group flex gap-2 flex-row-reverse justify-end items-center mb-4">
+    <label 
+        for="{{ field.attributes.id }}"
+        class="block"
+    >{{ field.label }}</label>
+    <input 
+        type="checkbox"
+        {{ attr(field.attributes) }}
+        {% if field.value %}checked{% endif %}
+        name="{{ field.attributes.name }}" 
+        class="
+        h-5 w-5 
+        cursor-pointer transition-all appearance-none 
+        rounded 
+        shadow-sm hover:shadow-xs 
+
+        duration-100 ease-in-out
+
+
+        bg-gradient-to-b from-white to-gray-50 hover:from-gray-50 hover:to-white
+
+        checked:bg-none checked:bg-indigo-500
+
+        checked:inset-shadow-indigo-300
+        checked:hover:bg-indigo-500
+        hover:checked:inset-shadow-indigo-600
+        hover:checked:border-indigo-700
+        checked:border
+        checked:border-indigo-500
+        
+        inset-shadow-white hover:inset-shadow-gray-200
+        inset-shadow-sm
+
+
+        {% if 'class' in field|keys %}{{ field.class }}{% endif %}
+    ">
+</div>

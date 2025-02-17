@@ -6,6 +6,8 @@ use Phntm\Lib\Model;
 
 abstract class Base
 {
+    use Traits\HasHooks;
+
     public string $columnType;
 
     public string $inputTemplate;
@@ -19,6 +21,7 @@ abstract class Base
     public bool $hidden = false;
     public bool $required = false;
     public ?string $label = null;
+    public bool $unique = false;
 
     public function setModel(Model $model): void
     {
@@ -87,7 +90,9 @@ abstract class Base
 
     public function getOptions(): array
     {
-        return [];
+        return [
+            ...$this->getBaseOptions(),
+        ];
     }
 
 
@@ -100,7 +105,7 @@ abstract class Base
     {
         $values = [
             'element' => $this->inputTemplate,
-            'label' => ucfirst($this->getColumnName()),
+            'label' => $this->label ?? ucfirst($this->getColumnName()),
             'value' => $this->getFormValue(),
             'attributes' => [
                 'name' => $this->getColumnName(),
@@ -109,6 +114,17 @@ abstract class Base
         ];
 
         return $values;
+    }
+
+    public function getBaseOptions(): array
+    {
+        return [
+        ];
+    } 
+
+    public function isUnique(): bool
+    {
+        return $this->unique;
     }
 
 }

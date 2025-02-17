@@ -28,8 +28,6 @@ class Schema extends Command
 
         $table = $sm->introspectTable($tableName);
 
-        dump($table);
-
         return Command::SUCCESS;
     }
 }

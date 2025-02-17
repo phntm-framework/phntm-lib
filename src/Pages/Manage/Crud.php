@@ -43,13 +43,11 @@ abstract class Crud extends AbstractManagePage
         if ($request->isMethod('POST')) {
             $this->entity = new $this->entityClass;
             foreach ($request->request->all() as $col => $value) {
-                dump($col, $value);
                 $attr = $this->entity->getAttribute($col);
                 $this->entity->{$col} = $attr->fromFormValue($value);
             }
 
             $this->entity->save();
-            dd($this->entity);
 
             throw new Redirect('/manage/examples/all', 302);
         }
@@ -116,7 +114,7 @@ abstract class Crud extends AbstractManagePage
         return $entity ? $entity : null;
     }
 
-    protected function handleEntityNotFound(): void
+    protected function handleEntityNotFound(): mixed
     {
         if ($this->matchedAction === 'edit') {
             throw new Redirect('/manage/examples/create', 302);

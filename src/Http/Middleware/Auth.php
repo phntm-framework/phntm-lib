@@ -2,12 +2,12 @@
 
 namespace Phntm\Lib\Http\Middleware;
 
+use Phntm\Lib\Pages\EndpointInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Phntm\Lib\Auth\Attributes\Auth as AuthAttribute;
 use Phntm\Lib\Http\Redirect;
 use Phntm\Lib\Pages\Manageable;
 use Phntm\Lib\Auth\Pages\Login\Page as LoginPage;
-use Phntm\Lib\Pages\PageInterface;
 use function array_unique;
 use function gzdecode;
 use function password_verify;
@@ -33,7 +33,7 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
 
         $page = $request->getAttribute('page', false);
 
-        if (!$page instanceof PageInterface) {
+        if (!$page instanceof EndpointInterface) {
             return $handler->handle($request);
         }
 
@@ -73,7 +73,7 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
         return true;
     }
 
-    private function isGuarded(PageInterface $page): bool
+    private function isGuarded(EndpointInterface $page): bool
     {
         if ($page instanceof Manageable) {
             $this->roles = ['admin', 'super'];

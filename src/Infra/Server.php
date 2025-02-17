@@ -31,13 +31,12 @@ class Server
 
         Debug\Debugger::init();
 
-        Debug\Debugger::getBar()['time']->startMeasure('server-init', 'Server Initialization');
+        Debug\Debugger::startMeasure('server-init', 'Server Initialization');
 
         $middleware = [
             new Whoops(
                 responseFactory: Container::get()->get(ResponseFactoryInterface::class)
             ),
-            new Redirect(),
             'debug' => (new Debugbar(
                 Debug\Debugger::getBar()
             ))->inline(),
@@ -53,7 +52,7 @@ class Server
 
         $this->requestHandler = new Relay($middleware);
 
-        Debug\Debugger::getBar()['time']->stopMeasure('server-init');
+        Debug\Debugger::stopMeasure('server-init');
 
     }
 
@@ -127,6 +126,7 @@ class Server
         if (!file_exists($configFile)) {
             throw new \Error('Config file not found at ' . $configFile);
         }
+
         $config = require_once $configFile;
         Config::merge($config);
     }

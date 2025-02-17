@@ -8,6 +8,14 @@ return [
         'encryption' => [
             'key' => '1234567890123456',
         ],
+        'providers' => [
+            'google' => [
+                'enabled' => false,
+                'client_id' => 'your-client-id',
+                'client_secret' => 'your-client-secret',
+                'redirect_uri' => 'http://localhost:8080/auth/google/callback',
+            ],
+        ]
     ],
     'db' => [
         'entity_paths' => [
@@ -20,5 +28,9 @@ return [
             'driver' => 'pdo_mysql',
             'host' => 'db',
         ],
+    ],
+    'images' => [
+        'source' => ROOT . '/images',
+        'distribute' => ROOT . '/public/images',
     ],
 ];

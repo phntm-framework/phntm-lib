@@ -18,7 +18,8 @@
         "maximebf/debugbar": "^1.23",
         "league/container": "^4.2",
         "doctrine/dbal": "^4.2",
-        "doctrine/migrations": "^3.8"
+        "doctrine/migrations": "^3.8",
+        "spatie/image": "^3.8"
     },
     "autoload": {
         "psr-4": {

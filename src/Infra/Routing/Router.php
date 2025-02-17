@@ -7,19 +7,12 @@ use Phntm\Lib\Infra\Routing\Attributes\Alias;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Pages\Endpoint;
 use Phntm\Lib\Pages\EndpointInterface;
-use Phntm\Lib\Pages\PageInterface;
-use Phntm\Lib\Pages\Manageable;
-use Phntm\Lib\Pages\ResolvesDynamicParams;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
-use Symfony\Component\Routing\Route;
-use ReflectionClass;
-use function in_array;
-use function var_dump;
 
 /**
  * Handles routing and pages
@@ -43,9 +36,14 @@ class Router
     public array $registeredManagePages = [];
     public array $unregisteredManagePages = [];
 
-    public function __construct(protected Request $request)
+    protected RequestContext $requestContext;
+
+    public function __construct(Request $request)
     {
-        $context = (new RequestContext())->fromRequest($this->request);
+        $context = (new RequestContext())->fromRequest($request);
+        $context->setPathInfo(rtrim($context->getPathInfo(), '/'));
+
+        $this->requestContext = $context;
 
         if (file_exists(self::CACHE_FILE) && !isLocal()) {
             Debugger::log('Using cached routes', 'info');
@@ -61,7 +59,9 @@ class Router
             Debugger::getBar()['time']->stopMeasure('router.index');
 
             $this->matcher = new UrlMatcher($this->routes, $context);
+            Debugger::log(isLocal(), 'info');
             if (!isLocal()) {
+                Debugger::log('Caching routes', 'info');
                 $this->cacheRoutes();
             }
         }
@@ -95,7 +95,7 @@ class Router
     {
         Debugger::getBar()['time']->startMeasure('router.dispatch', 'Dispatch Route');
         try {
-            $attributes = $this->matcher->match($this->request->getPathInfo());
+            $attributes = $this->matcher->match($this->requestContext->getPathInfo());
             Debugger::log($attributes, 'info');
 
             $parts = explode('::', $attributes['_route']);
@@ -164,6 +164,7 @@ class Router
     {
         // remove the namespace and the class name suffix
         $namespace = preg_replace('/\\\Page$/', '', $namespace);
+        $namespace = preg_replace('/\\\Manage$/', '', $namespace);
         $namespace = ltrim($namespace, 'Pages');
 
         $namespace = explode('\\', $namespace);

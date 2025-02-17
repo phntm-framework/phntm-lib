@@ -1,36 +1,35 @@
 <form class="w-full max-w-md pb-16" method="post">
+
     <h1 class="text-2xl font-bold mb-4">
         Login
     </h1>
+
     <input required type="text" name="username" placeholder="Username" class="p-2 w-full mb-2 bg-white border border-solid border-gray-300 rounded-xs">
-    <input required type="password" name="password" placeholder="Password" class="p-2 w-full mb-2 bg-white border border-solid border-gray-300 rounded-xs">
-    <div class="w-full flex justify-between items-center">
-        <a href="" class="
+    <input required type="password" name="password" placeholder="Password" class="p-2 w-full mb-6 bg-white border border-solid border-gray-300 rounded-xs">
+    <div class="w-full flex justify-between items-start">
+        <a href="/manage/forgot-password" class="
             text-zinc-600 hover:text-zinc-700
             transition-all duration-200 ease-in-out
             hover:underline
         ">Forgot password?</a>
 
         <div class="flex gap-2 justify-end">
-            <a id="manage-login-google" href="/auth-login/google" class="
-                text-center
-                transition-all duration-200 ease-in-out
-                bg-white hover:bg-gray-200
-                shadow-sm shadow-md hover:shadow-xs
-                text-zinc-900
-                rounded-sm
-                p-2 w-32
-            ">Google</a>
-            <button id="manage-login-submit" type="submit" class="
-                text-center
-                transition-all duration-200 ease-in-out
-                bg-indigo-500 hover:bg-indigo-700
-                inset-shadow-indigo-400 hover:inset-shadow-indigo-600
-                inset-shadow-sm shadow-md hover:shadow-xs
-                text-white hover:text-gray-200
-                rounded-sm
-                p-2 w-32
-            ">Login</button>
+            {% if google_enabled %}
+                <a id="manage-login-google" href="/auth-login/google" class="
+                    text-center
+                    transition-all duration-200 ease-in-out
+                    bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300
+                    inset-shadow-white hover:inset-shadow-gray-300
+                    inset-shadow-sm shadow-md hover:shadow-xs
+                    text-zinc-900
+                    rounded-sm
+                    py-1 px-6 min-w-18
+                ">Google</a>
+            {% endif %}
+            {% include 'elements/button.twig' with {
+                id: 'manage-login-submit',
+                label: 'Login'
+            } %}
         </div>
     </div>
 </form>

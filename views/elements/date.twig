@@ -7,12 +7,16 @@
         {{ attr(field.attributes) }}
         value="{{ field.value }}" 
         class="
-        p-2 mb-4
-        border border-solid border-gray-300 rounded-xs
-        transition-all duration-200 ease-in-out
-        bg-white hover:inset-shadow-gray-200 hover:inset-shadow-sm
-        text-gray-800 hover:text-gray-900
-        w-full max-w-48
+            p-2 mb-4
+            border border-solid border-gray-300 rounded-xs
+            bg-white hover:inset-shadow-gray-200 hover:inset-shadow-xs
+            text-gray-800 hover:text-gray-900
+            w-full max-w-48
+
+            transition-all duration-100 ease-in-out
+            hover:border-gray-400
+            focus:outline
+            focus:outline-indigo-500
         {% if 'class' in field|keys %}{{ field.class }}{% endif %}
     ">
 </div>

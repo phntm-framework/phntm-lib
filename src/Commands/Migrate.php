@@ -52,6 +52,7 @@ class Migrate extends Command
 
     protected function handleMigration(string $model, OutputInterface $output): void
     {
+        /** @var \Phntm\Lib\Model $model */
         $output->write($model::getTableName() . ' ');
         if (!$model::tableExists()) {
             $model::createTable();

@@ -1,4 +1,13 @@
 <section class="max-w-3xl mr-auto h-full">
+    {% if backLink %}
+        <a href="{{ backLink }}" class="
+            block
+            text-zinc-600 hover:text-zinc-700
+            transition-all duration-200 ease-in-out
+            hover:underline
+            mb-2
+        ">Back</a>
+    {% endif %}
     <form method="POST" class="h-full">
         <fieldset class="">
             <legend class="
@@ -7,16 +16,11 @@
             {% for field in form %}
                 {% include 'elements/' ~ field.element ~ '.twig' with field %}
             {% endfor %}
-            <button id="manage-login-submit" type="submit" class="
-                text-center
-                transition-all duration-200 ease-in-out
-                bg-indigo-500 hover:bg-indigo-700
-                inset-shadow-indigo-400 hover:inset-shadow-indigo-600
-                inset-shadow-sm shadow-md hover:shadow-xs
-                text-white hover:text-gray-200
-                rounded-sm
-                p-2 w-32
-            ">Save</button>
+
+            {% include 'elements/button.twig' with {
+                id: 'manage-login-submit',
+                label: 'Save'
+            } %}
         </fieldset>
     <form>
 </section>

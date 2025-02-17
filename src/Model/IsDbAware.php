@@ -50,6 +50,10 @@ trait IsDbAware
                 $attribute->getColumnType(),
                 [...$attribute->getOptions(), 'notnull' => false]
             );
+            if ($attribute->isUnique()) {
+                echo 'Adding unique constraint for ' . $attribute->getColumnName() . PHP_EOL;
+                $table->addUniqueConstraint([$attribute->getColumnName()]);
+            }
         }
 
         $table->setPrimaryKey(['id'], 'id');
