@@ -23,7 +23,6 @@ trait Meta
         // page title
         $head = "<title>{$this->title}</title>";
 
-
         // javascript
         $head .= $this->formattedScripts();
 
@@ -33,16 +32,21 @@ trait Meta
         return $head;
     }
 
-    protected function withBodyClass(string $class): void
+    protected function withBodyClass(string $class, bool $replace=false): void
     {
-        if (!in_array($class, $this->body_classes)) {
+        if ($replace) {
+            $this->body_classes = [ $class ];
+            return;
+        }
+
+        if (!\in_array($class, $this->body_classes)) {
             $this->body_classes[] = $class;
         }
     }
 
     protected function bodyClasses(): string
     {
-        return implode(' ', [ $this->body_class, ...$this->body_classes ]);
+        return \implode(' ', \array_unique([ $this->body_class, ...$this->body_classes ]));
     }
 
     final public function getMeta(): array

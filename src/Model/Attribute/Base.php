@@ -3,7 +3,14 @@
 namespace Phntm\Lib\Model\Attribute;
 
 use Phntm\Lib\Model;
+use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * Base for all model data attributes
+ *
+ * handles the conversion of data between the DB, forms, and model
+ *
+ */
 abstract class Base
 {
     use Traits\HasHooks;
@@ -77,16 +84,44 @@ abstract class Base
         return $this->model->{$this->getColumnName()};
     }
 
+    // Value conversion
+
+    /**
+     * Convert the value from the database format to the model format
+     *
+     * @param mixed $value
+     * @return mixed
+     */
     public function fromDbValue(mixed $value): mixed
     {
         return $value;
     }
 
+    /**
+     * Convert the value from the form format to the model format
+     *
+     * @param mixed $value
+     * @return mixed
+     */
     public function fromFormValue(mixed $value): mixed
     {
         return $value;
     }
 
+    public function getOldValue(): mixed
+    {
+        return $this->model->getOldValue($this->getColumnName());
+    }
+
+    public function fromRequest(Request $request): mixed
+    {
+        // if the request does not have the column, return the current value
+        if (!$request->request->has($this->getColumnName())) {
+            return $this->model->{$this->getColumnName()};
+        }
+
+        return $this->fromFormValue($request->request->get($this->getColumnName()));
+    }
 
     public function getOptions(): array
     {

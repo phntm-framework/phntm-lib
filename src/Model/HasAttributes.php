@@ -6,6 +6,8 @@ trait HasAttributes
 {
     protected array $attributes = [];
 
+    protected array $old = [];
+
     public function getAttributes(): array
     {
         if (!empty($this->attributes)) {
@@ -22,6 +24,13 @@ trait HasAttributes
         $this->attributes = $attributes;
 
         return $attributes;
+    }
+
+    public function getOldValue(string|Attribute\Base $attribute): mixed
+    {
+        $attribute = is_string($attribute) ? $this->getAttributes()[$attribute] : $attribute;
+
+        return $this->old[$attribute->getColumnName()] ?? null;
     }
 
     protected function sourcePropertyAttributes(\ReflectionClass $reflection, array &$attributes): void

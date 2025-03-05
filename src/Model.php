@@ -39,6 +39,8 @@ abstract class Model
             $this->{$key} = $attribute->fromDbValue($value);
         }
 
+        $this->updateOld();
+
         $this->isPersisted = true;
         return $this;
     }
@@ -51,6 +53,8 @@ abstract class Model
      */
     public function save(): static
     {
+        $this->triggerHook('beforeSave');
+
         if ($this->isPersisted) {
             $this->update();
         } else {
@@ -58,6 +62,15 @@ abstract class Model
         }
 
         return $this;
+    }
+
+    protected function triggerHook(string $hook): void
+    {
+        foreach ($this->getAttributes() as $col => $attribute) {
+            if ($attribute->hasHook($hook)) {
+                $attribute->triggerHook($hook);
+            }
+        }
     }
 
     public function create(): static
@@ -110,7 +123,16 @@ abstract class Model
         }
         $db->executeQuery($qb->getSQL(), $qb->getParameters());
 
+        $this->updateOld();
+
         return $this;
+    }
+
+    protected function updateOld(): void
+    {
+        foreach ($this->getAttributes() as $col => $_) {
+            $this->old[$col] = $this->{$col};
+        }
     }
 
     public static function find(int $id): ?static

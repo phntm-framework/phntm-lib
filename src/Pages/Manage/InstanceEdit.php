@@ -17,9 +17,8 @@ abstract class InstanceEdit extends AbstractManagePage
                 $this->entity = new $this->entityClass;
             }
 
-            foreach ($request->request->all() as $col => $value) {
-                $attr = $this->entity->getAttribute($col);
-                $this->entity->{$col} = $attr->fromFormValue($value);
+            foreach ($this->entity->getAttributes() as $col => $attribute) {
+                $this->entity->{$col} = $attribute->fromRequest($request);
             }
 
             $this->entity->save();

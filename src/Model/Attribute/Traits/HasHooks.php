@@ -21,6 +21,11 @@ trait HasHooks
         $this->hooks[$hook][] = $callback;
     }
 
+    public function hasHook(string $hook): bool
+    {
+        return isset($this->hooks[$hook]);
+    }
+
     public function triggerHook(string $hook): void
     {
         if (!isset($this->hooks[$hook])) {

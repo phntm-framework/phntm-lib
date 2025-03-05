@@ -59,7 +59,7 @@ class Router
             Debugger::getBar()['time']->stopMeasure('router.index');
 
             $this->matcher = new UrlMatcher($this->routes, $context);
-            Debugger::log(isLocal(), 'info');
+
             if (!isLocal()) {
                 Debugger::log('Caching routes', 'info');
                 $this->cacheRoutes();

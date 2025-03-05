@@ -1,0 +1,37 @@
+<div class="form-group">
+    <label class="block" for="{{ field.attributes.id }}">{{ field.label }}</label>
+
+    <div class="
+        bg-white border border-solid border-gray-300 rounded-xs
+
+        transition-all duration-100 ease-in-out
+        hover:border-gray-400
+        mb-2
+    ">
+        {% if field.value %}
+            <div class="p-4">
+                {{ field.value|raw }}
+            </div>
+        {% endif %}
+
+        <input 
+            type="hidden"
+            name="{{ field.attributes.name }}"
+            value="{{ field.value.getSrc() }}"
+            {{ attr(field.attributes) }}
+        >
+
+        <input 
+            type="file"
+            name="{{ field.attributes.name }}.new"
+            id="{{ field.attributes.id }}.new"
+            
+            class="
+                p-2 w-full
+                focus:outline
+                focus:outline-indigo-500
+                rounded-xs
+            {% if 'class' in field|keys %}{{ field.class }}{% endif %}
+        ">
+    </div>
+</div>

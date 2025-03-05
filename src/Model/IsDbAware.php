@@ -45,13 +45,12 @@ trait IsDbAware
         $table = $schema->createTable(static::getTableName());
 
         foreach ((new static())->getAttributes() as $attribute) {
-            $table->addColumn(
+            $col = $table->addColumn(
                 $attribute->getColumnName(),
                 $attribute->getColumnType(),
                 [...$attribute->getOptions(), 'notnull' => false]
             );
             if ($attribute->isUnique()) {
-                echo 'Adding unique constraint for ' . $attribute->getColumnName() . PHP_EOL;
                 $table->addUniqueConstraint([$attribute->getColumnName()]);
             }
         }

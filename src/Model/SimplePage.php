@@ -4,6 +4,7 @@ namespace Phntm\Lib\Model;
 
 use DateTime;
 use Phntm\Lib\Config;
+use Phntm\Lib\Images\BaseImage;
 use Phntm\Lib\Model;
 use Phntm\Lib\Model\Attribute as Col;
 
@@ -11,9 +12,7 @@ class SimplePage extends Model
 {
     protected static string $table = 'simple_pages';
 
-    #[Col\Text(
-        required: true,
-    )]
+    #[Col\Text( required: true,)]
     public string $title;
 
     #[Col\Text(
@@ -22,14 +21,14 @@ class SimplePage extends Model
     )]
     public string $slug;
 
-    #[Col\TextArea(
-        required: true,
-    )]
+    #[Col\Image()]
+    public ?BaseImage $image;
+
+    #[Col\TextArea( required: true,)]
     public string $content;
 
     #[Col\Date(
         label: 'Date Published',
-        required: false,
     )]
     public ?\DateTime $published_on;
 
