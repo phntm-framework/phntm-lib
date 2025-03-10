@@ -14,11 +14,9 @@
         "nyholm/psr7-server": "^1.1",
         "middlewares/whoops": "^2.0",
         "middlewares/debugbar": "^2.1",
-        "middlewares/trailing-slash": "^2.0",
         "maximebf/debugbar": "^1.23",
         "league/container": "^4.2",
         "doctrine/dbal": "^4.2",
-        "doctrine/migrations": "^3.8",
         "spatie/image": "^3.8"
     },
     "autoload": {
