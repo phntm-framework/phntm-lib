@@ -61,7 +61,7 @@ class Server
         ?string $config=null
     ): void {
 
-        $this->loadConfig(realpath(__DIR__ . '/../../config.php'));
+        $this->loadConfig(realpath(__DIR__ . '/../../inc/config.php'));
 
         if (null !== $config) {
             // Site level config
@@ -70,7 +70,7 @@ class Server
 
 
         // Phntm services
-        $this->loadServices(realpath(__DIR__ . '/../../services.php'));
+        $this->loadServices(realpath(__DIR__ . '/../../inc/services.php'));
 
         if (null !== $services) {
             // Site level services
