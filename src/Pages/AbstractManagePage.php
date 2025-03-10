@@ -4,7 +4,6 @@ namespace Phntm\Lib\Pages;
 
 use Phntm\Lib\Infra\Routing\Router;
 use Phntm\Lib\Db\Db;
-use Phntm\Lib\Http\Redirect;
 use Phntm\Lib\Model;
 use Psr\Http\Message\StreamInterface;
 use Symfony\Component\HttpFoundation\Request;
