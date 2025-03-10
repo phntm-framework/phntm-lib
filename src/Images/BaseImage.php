@@ -4,6 +4,7 @@ namespace Phntm\Lib\Images;
 
 use Closure;
 use Phntm\Lib\Infra\Debug\Debugger;
+use Phntm\Lib\View\Elements\HasClasses;
 use Spatie\Image\Enums\ImageDriver;
 use Stringable;
 use Spatie\Image\Image;
@@ -11,7 +12,7 @@ use function dirname;
 use function serialize;
 use function var_export;
 
-class BaseImage implements ImageInterface, Stringable
+class BaseImage implements ImageInterface, Stringable, HasClasses
 {
     protected string $source;
     protected string $location;
@@ -139,20 +140,20 @@ class BaseImage implements ImageInterface, Stringable
         return '/images/' . $this->getHash() . '/' . $this->location;
     }
 
-    public function configure(Closure $callback): ImageInterface
+    public function configure(Closure $callback): static
     {
         $this->configurator = $callback($this->configurator);
 
         return $this;
     }
 
-    public function withAlt(string $alt): ImageInterface
+    public function withAlt(string $alt): self
     {
         $this->alt = $alt;
         return $this;
     }
 
-    public function withClass(string $class): ImageInterface
+    public function withClass(string $class): self
     {
         $this->class = $class;
         return $this;

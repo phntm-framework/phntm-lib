@@ -45,7 +45,7 @@ class Router
 
         $this->requestContext = $context;
 
-        if (file_exists(self::CACHE_FILE) && !isLocal()) {
+        if (file_exists(self::CACHE_FILE) && !Debugger::$enabled) {
             Debugger::log('Using cached routes', 'info');
 
             $compiledRoutes = $this->getCachedRoutes();
@@ -53,15 +53,11 @@ class Router
             $this->matcher = new CompiledUrlMatcher($compiledRoutes, $context);
 
         } else {
-            Debugger::log('Indexing routes', 'info');
-            Debugger::getBar()['time']->startMeasure('router.index', 'Index Routes');
             $this->indexRoutes();
-            Debugger::getBar()['time']->stopMeasure('router.index');
 
             $this->matcher = new UrlMatcher($this->routes, $context);
 
-            if (!isLocal()) {
-                Debugger::log('Caching routes', 'info');
+            if (!Debugger::$enabled) {
                 $this->cacheRoutes();
             }
         }
@@ -75,6 +71,7 @@ class Router
      */
     public function indexRoutes(): void
     {
+        Debugger::startMeasure('router.index', 'Index Routes');
         $this->routes = new RouteCollection();
 
         $classes = $this->autoload();
@@ -84,6 +81,7 @@ class Router
                 $pageClass::registerRoutes($this->routes);
             }
         }
+        Debugger::stopMeasure('router.index');
     }
 
     /**

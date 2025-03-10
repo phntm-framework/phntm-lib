@@ -32,6 +32,11 @@ abstract class Endpoint implements EndpointInterface, HasResolvableParts
         return null;
     }
 
+    public function __isset(string $name): bool
+    {
+        return array_key_exists($name, $this->dynamic_params);
+    }
+
     public function dispatch(Request $request): StreamInterface
     {
         $this($request);

@@ -82,26 +82,12 @@ class TemplateManager
         $this->environment->setLoader($this->loader);
     }
 
-    public function renderTemplate(array $data, bool $use_document = true): string
+    public function renderTemplate(array $data): string
     {
         try {
-            $meta = $data['phntm_meta'];
-            unset($data['phntm_meta']);
+            $view = $this->environment->load($this->view_file)->render($data);
 
-            $view = $this->environment->render($this->view_file, $data);
-
-            if ($use_document === false) {
-                return $view;
-            }
-
-            $document = $this->environment->render($this->template_file, [
-                'head' => $meta['head'] ?? '',
-                'body_class' => $meta['body_class'] ?? '',
-                'view' => $view,
-            ]);
-
-            return $document;
-
+            return $view;
         } catch (\Twig\Error\Error $e) {
             throw $e;
         }

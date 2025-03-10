@@ -34,7 +34,7 @@ abstract class Renderable extends Endpoint implements CanRender
         $this($request);
 
         $this->preRender();
-        return $this->render();
+        return Stream::create($this->render());
     }
 
     public function preRender(): void

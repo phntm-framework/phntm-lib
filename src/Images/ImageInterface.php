@@ -40,5 +40,5 @@ interface ImageInterface
      *
      * @return ImageInterface
      */
-    public function configure(Closure $callback): ImageInterface;
+    public function configure(Closure $callback): static;
 }   
