@@ -247,7 +247,8 @@ class Router
     private function getCachedRoutes(): array
     {
         /** @var array $compiledRoutes */
-        $compiledRoutes = require_once self::CACHE_FILE;
+        $compiledRoutes = require self::CACHE_FILE;
+
         return $compiledRoutes;
     }
 

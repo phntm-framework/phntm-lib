@@ -17,3 +17,5 @@ $container->add(Psr\Http\Message\ServerRequestInterface::class, function () use 
 
     return $serverRequestFactory->fromGlobals();
 });
+
+$container->add(Phntm\Lib\Site\Navigation\ResolverInterface::class, Phntm\Lib\Site\Navigation\SimplePageResolver::class);

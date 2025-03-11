@@ -14,6 +14,7 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Middlewares\Whoops;
 use Middlewares\Debugbar;
 use Relay\Relay;
+use Phntm\Lib\Di\Container;
 use function ob_clean;
 use function realpath;
 

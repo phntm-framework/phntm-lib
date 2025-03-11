@@ -54,7 +54,7 @@ class SimplePage extends Model
 
     public function getFullUrl(): string
     {
-        return rtrim(Config::get()['site']['url'], '/') . $this->getSlug();
+        return rtrim(Config::env('SITE_URL'), '/') . $this->getSlug();
     }
 
     public function setupHooks(): void

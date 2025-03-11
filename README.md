@@ -26,7 +26,7 @@ Phntm starter project is coming soon, but for now you would need an nginx server
 
 ## Routing
 
-Routing within phntm is done using PSR-0 namespaces, so the structure of your pages directory will be used to determine the application's routes, this removes the need for dedicated route registration.
+Routing within phntm is achieved with PSR-0 namespaces, so the structure of your pages directory will be used to determine the application's routes, this removes the need for dedicated route registration.
 
 the below diagram shows the default directory structure for a new phntm project.
 ```

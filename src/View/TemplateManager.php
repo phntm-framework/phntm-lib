@@ -2,7 +2,9 @@
 
 namespace Phntm\Lib\View;
 
+use Phntm\Lib\Config;
 use Phntm\Lib\Infra\Debug\Debugger;
+use Twig\Runtime\EscaperRuntime;
 
 class TemplateManager 
 {
@@ -21,6 +23,7 @@ class TemplateManager
 
         $this->loader = new \Twig\Loader\FilesystemLoader([
             $template_directory,
+            ...Config::retrieve('view.load_from'),
         ]);
 
         $this->environment = new \Twig\Environment($this->loader, [
@@ -31,6 +34,12 @@ class TemplateManager
 
         $this->environment->addExtension(new Twig\Extension());
 
+
+        // Escaping
+        $this->environment->getRuntime(EscaperRuntime::class)
+            ->addSafeClass(\Phntm\Lib\Images\ImageInterface::class, ['html']);
+
+        // Debug
         if (Debugger::$enabled) {
             $this->environment->addExtension(new \Twig\Extension\DebugExtension());
             $profile = new \Twig\Profiler\Profile();

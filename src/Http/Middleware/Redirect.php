@@ -3,7 +3,7 @@
 namespace Phntm\Lib\Http\Middleware;
 
 use Phntm\Lib\Http\Redirect as ThrownRedirect;
-use Phntm\Lib\Infra\Container;
+use Phntm\Lib\Di\Container;
 use Phntm\Lib\Infra\Debug\Debugger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

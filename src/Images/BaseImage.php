@@ -9,11 +9,10 @@ use Spatie\Image\Enums\ImageDriver;
 use Stringable;
 use Spatie\Image\Image;
 use function dirname;
-use function serialize;
-use function var_export;
 
 class BaseImage implements ImageInterface, Stringable, HasClasses
 {
+    protected string $originalSource;
     protected string $source;
     protected string $location;
     protected string $alias;
@@ -27,6 +26,8 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
         public string $alt = '',
         Closure $config = null,
     ) {
+        $this->originalSource = $source;
+
         if (strpos($source, ROOT . '/images/') === 0) {
             $this->source = $source;
         } else {
@@ -120,13 +121,11 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
             throw new \Exception("Image not found: {$this->source}");
         }
 
-        dirname($this->getPublicLocation());
         if (!is_dir(dirname($this->getPublicLocation()))) {
             mkdir(dirname($this->getPublicLocation()), 0777, true);
         }
 
         $this->configurator
-            ->optimize()
             ->save($this->getPublicLocation());
     }
 
@@ -147,15 +146,30 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
         return $this;
     }
 
-    public function withAlt(string $alt): self
+    public function withAlt(string $alt): static
     {
         $this->alt = $alt;
         return $this;
     }
 
-    public function withClass(string $class): self
+    public function withClass(string $class): static
     {
         $this->class = $class;
         return $this;
+    }
+
+    public function getOriginalSource(): string
+    {
+        return $this->originalSource;
+    }
+
+    public function getHeight(): int
+    {
+        return $this->configurator->getHeight();
+    }
+
+    public function getWidth(): int
+    {
+        return $this->configurator->getWidth();
     }
 }

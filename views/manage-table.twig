@@ -1,38 +1,44 @@
-<section class="w-full h-full">
-    <div class="w-full py-2 flex justify-between items-center mb-6">
-        <h2 class="
-            text-2xl font-bold text-gray-800
-        ">{{ entity }}</h2>
-        {% if links.create|default(false) %}
-            <a href="{{ links.create }}" id="manage-login-submit" class="
-                text-center
-                transition-all duration-200 ease-in-out
-                bg-indigo-500 hover:bg-indigo-700
-                inset-shadow-indigo-400 hover:inset-shadow-indigo-600
-                inset-shadow-sm shadow-md hover:shadow-xs
-                text-white hover:text-gray-200
-                rounded-sm
-                p-2 w-32
-            ">New</a>
-        {% endif %}
-    </div>
-    <form method="POST">
-        {% include 'manage/table.twig' with { columns: columns, rows: entities } %}
-        <div class="flex gap-2 justify-start">
-            <select name="action" class="
-                text-left
-                transition-all duration-200 ease-in-out
-                bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300
-                inset-shadow-white hover:inset-shadow-gray-300
-                inset-shadow-sm
-                text-zinc-900
-                border border-gray-400
-                rounded-sm
-                py-1 px-2 min-w-18
-            ">
-                <option value="delete">Delete</option>
-            </select>
-            {% include 'elements/button.twig' with { id: 'bulk-action-submit', label: 'Submit' } %}
+{% extends 'manage-html.twig' %}
+
+{% block body_class %}min-h-screen bg-gray-100 flex justify-center items-center{% endblock %}
+
+{% block body %}
+    <section class="w-full h-full">
+        <div class="w-full py-2 flex justify-between items-center mb-6">
+            <h2 class="
+                text-2xl font-bold text-gray-800
+            ">{{ entity }}</h2>
+            {% if links.create|default(false) %}
+                <a href="{{ links.create }}" id="manage-login-submit" class="
+                    text-center
+                    transition-all duration-200 ease-in-out
+                    bg-indigo-500 hover:bg-indigo-700
+                    inset-shadow-indigo-400 hover:inset-shadow-indigo-600
+                    inset-shadow-sm shadow-md hover:shadow-xs
+                    text-white hover:text-gray-200
+                    rounded-sm
+                    p-2 w-32
+                ">New</a>
+            {% endif %}
         </div>
-    </form>
-</section>
+        <form method="POST">
+            {% include 'manage/table.twig' with { columns: columns, rows: entities } %}
+            <div class="flex gap-2 justify-start">
+                <select name="action" class="
+                    text-left
+                    transition-all duration-200 ease-in-out
+                    bg-gradient-to-b from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300
+                    inset-shadow-white hover:inset-shadow-gray-300
+                    inset-shadow-sm
+                    text-zinc-900
+                    border border-gray-400
+                    rounded-sm
+                    py-1 px-2 min-w-18
+                ">
+                    <option value="delete">Delete</option>
+                </select>
+                {% include 'elements/button.twig' with { id: 'bulk-action-submit', label: 'Submit' } %}
+            </div>
+        </form>
+    </section>
+{% endblock %}

@@ -5,7 +5,7 @@ namespace Phntm\Lib\Model\Attribute;
 use Attribute;
 use Nyholm\Psr7\UploadedFile;
 use Phntm\Lib\Images\BaseImage;
-use Phntm\Lib\Infra\Container;
+use Phntm\Lib\Di\Container;
 use Psr\Http\Message\ServerRequestInterface;
 use function get_class;
 

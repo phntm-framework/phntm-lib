@@ -18,7 +18,7 @@ class Page extends AbstractPage
         $this->withScript('https://unpkg.com/@tailwindcss/browser@4');
 
         $this->renderWith([
-            'google_enabled' => Config::get()['auth']['providers']['google']['enabled'],
+            'google_enabled' => Config::retrieve('auth.providers.google.enabled'),
         ]);
     }
 }

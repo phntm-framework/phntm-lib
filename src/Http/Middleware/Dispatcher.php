@@ -2,7 +2,7 @@
 
 namespace Phntm\Lib\Http\Middleware;
 
-use Phntm\Lib\Infra\Container;
+use Phntm\Lib\Di\Container;
 use Phntm\Lib\Pages\EndpointInterface;
 use Phntm\Lib\Pages\PageInterface;
 use Psr\Http\Message\ResponseFactoryInterface;

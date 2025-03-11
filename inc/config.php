@@ -30,7 +30,13 @@ return [
         ],
     ],
     'images' => [
+        'load_from' => [
+            PHNTM . '/images',
+        ],
         'source' => ROOT . '/images',
         'distribute' => ROOT . '/public/images',
+    ],
+    'site' => [
+        'logo' => 'images/logo.png',
     ],
 ];

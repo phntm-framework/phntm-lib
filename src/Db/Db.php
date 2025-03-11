@@ -21,7 +21,7 @@ class Db
         }
 
         self::$connection = DriverManager::getConnection(
-            Config::get()['db']['connection'],
+            Config::retrieve('db.connection'),
         );
 
         self::$isInitialized = true;

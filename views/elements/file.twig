@@ -17,7 +17,7 @@
         <input 
             type="hidden"
             name="{{ field.attributes.name }}"
-            value="{{ field.value.getSrc() }}"
+            {% if field.value %}value="{{ field.value.getSrc() }}"{% endif %}
             {{ attr(field.attributes) }}
         >
 

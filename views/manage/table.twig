@@ -1,28 +1,22 @@
-{% extends 'manage-html.twig' %}
-
-{% block body_class %}min-h-screen bg-gray-100 py-12 px-2 sm:px-6 lg:px-8 flex justify-center items-center{% endblock %}
-
-{% block body %}
-    <table class="w-full border-collapse border border-gray-300 mb-4">
-        <tr class="bg-gray-100">
-            <th></th>
-            {% for col in columns %}
-                <th>{{ col }}</th>
-            {% endfor %}
-            <th>Actions</th>
-        </tr>
-        {% for row in rows %}
-            <tr class="bg-white border border-b border-gray-300">
-                <td class="px-2">
-                    <input class="js-bulk-select" type="checkbox" name="selected[]" value="{{ row.id }}">
-                </td>
-                {% for col in columns %}
-                    <td>{{ row.getAttribute(col).getFormValue() }}</td>
-                {% endfor %}
-                <td class="flex justify-end">
-                    <a href="{{ row.injectToUrl(editLink)}}" class="text-indigo-500">Edit</a>
-                </td>
-            </tr>
+<table class="w-full border-collapse border border-gray-300 mb-4">
+    <tr class="bg-gray-100">
+        <th></th>
+        {% for col in columns %}
+            <th>{{ col }}</th>
         {% endfor %}
-    </table>
-{% endblock %}
+        <th>Actions</th>
+    </tr>
+    {% for row in rows %}
+        <tr class="bg-white border border-b border-gray-300">
+            <td class="px-2">
+                <input class="js-bulk-select" type="checkbox" name="selected[]" value="{{ row.id }}">
+            </td>
+            {% for col in columns %}
+                <td>{{ row.getAttribute(col).getFormValue() }}</td>
+            {% endfor %}
+            <td class="flex justify-end">
+                <a href="{{ row.injectToUrl(editLink)}}" class="text-indigo-500">Edit</a>
+            </td>
+        </tr>
+    {% endfor %}
+</table>

@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Route;
 
 abstract class Endpoint implements EndpointInterface, HasResolvableParts
 {
+    public static bool $hideFromSitemap = false;
     /**
      * @param array $dynamic_params
      */
