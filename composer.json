@@ -1,6 +1,8 @@
 {
-    "name": "bchubbweb/phntm-lib",
+    "name": "phntm-framework/phntm-lib",
     "type": "library",
+    "license": "GPL-3.0",
+    "version": "0.1.0",
     "require": {
         "symfony/cache": "^7.2",
         "symfony/routing": "^7.2",
