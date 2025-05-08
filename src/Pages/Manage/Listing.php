@@ -6,7 +6,8 @@ use Phntm\Lib\Db\Db;
 use Phntm\Lib\Http\Redirect;
 use Phntm\Lib\Model;
 use Phntm\Lib\Pages\AbstractManagePage;
-use Symfony\Component\HttpFoundation\Request;
+use Psr\Http\Message\ServerRequestInterface as PsrRequest;
+use function array_key_exists;
 
 abstract class Listing extends AbstractManagePage
 {
@@ -25,14 +26,16 @@ abstract class Listing extends AbstractManagePage
         return;
     }
 
-    public function __invoke(Request $request): void
+    public function __invoke(): void
     {
+        /** @var PsrRequest $request */
+        $request = $this->getRequest();
         if (
             $request->getMethod() === 'POST'
-            && $request->request->has('selected')
-            && $request->request->has('action')
+            && array_key_exists('selected', $request->getParsedBody())
+            && array_key_exists('action', $request->getParsedBody())
         ) {
-            $post = $request->request->getIterator()->getArrayCopy();
+            $post = $request->getParsedBody();
             $db = Db::getConnection();
             $qb = $db->createQueryBuilder();
 
@@ -48,7 +51,7 @@ abstract class Listing extends AbstractManagePage
 
             $result = $db->executeQuery($qb->getSQL(), $qb->getParameters());
 
-            throw new Redirect($request->getRequestUri(), 302);
+            throw new Redirect($request->getUri(), 302);
         }
 
         $this->renderWith([

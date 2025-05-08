@@ -4,7 +4,9 @@ namespace Phntm\Lib\Model;
 
 use Phntm\Lib\Db\Db;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Table;
+use Phntm\Lib\Di\Container;
 
 trait IsDbAware
 {
@@ -15,14 +17,14 @@ trait IsDbAware
 
     public static function tableExists(): bool
     {
-        $sm = Db::getSchemaManager();
+        $sm = Container::get()->get(AbstractSchemaManager::class);
         
         return $sm->tablesExist([static::getTableName()]);
     }
 
     public static function createTable(): void
     {
-        $sm = Db::getSchemaManager();
+        $sm = Container::get()->get(AbstractSchemaManager::class);
 
         $table = static::getCurrentSchema();
 
@@ -31,7 +33,7 @@ trait IsDbAware
 
     public static function getTableColumns(): array
     {
-        $sm = Db::getSchemaManager();
+        $sm = Container::get()->get(AbstractSchemaManager::class);
         $columns = $sm->listTableColumns(static::getTableName());
 
         return array_map(function ($column) {
@@ -44,7 +46,8 @@ trait IsDbAware
         $schema = new Schema();
         $table = $schema->createTable(static::getTableName());
 
-        foreach ((new static())->getAttributes() as $attribute) {
+        $example = Container::get()->get(static::class);
+        foreach ($example->getAttributes() as $attribute) {
             $col = $table->addColumn(
                 $attribute->getColumnName(),
                 $attribute->getColumnType(),
@@ -62,7 +65,7 @@ trait IsDbAware
 
     public static function getExistingSchema(): Table
     {
-        $sm = Db::getSchemaManager();
+        $sm = Container::get()->get(AbstractSchemaManager::class);
 
         return $sm->introspectTable(static::getTableName());
     }

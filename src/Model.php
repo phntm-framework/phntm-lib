@@ -2,6 +2,10 @@
 
 namespace Phntm\Lib;
 
+use League\Container\ContainerAwareInterface;
+use League\Container\ContainerAwareTrait;
+use Phntm\Lib\Db\Aware\ConnectionAwareInterface;
+use Phntm\Lib\Db\Aware\ConnectionAwareTrait;
 use Phntm\Lib\Model\Attribute as Col;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -9,9 +13,11 @@ use Phntm\Lib\Db\Db;
 use Phntm\Lib\Model\IsDbAware;
 use Phntm\Lib\Model\HasAttributes;
 
-abstract class Model
+abstract class Model implements ContainerAwareInterface, ConnectionAwareInterface
 {
     use IsDbAware;
+    use ContainerAwareTrait;
+    use ConnectionAwareTrait;
     use HasAttributes;
 
     protected static string $table;
@@ -32,7 +38,7 @@ abstract class Model
     ) {
     }
 
-    protected function load(array $data): static
+    public function load(array $data): static
     {
         foreach ($data as $key => $value) {
             $attribute = $this->getAttribute($key);
@@ -135,9 +141,9 @@ abstract class Model
         }
     }
 
-    public static function find(int $id): ?static
+    public function find(int $id): ?static
     {
-        $instance = new static();
+        $instance = $this->getContainer()->get(static::class);
 
         $db = static::db();
 
@@ -165,17 +171,17 @@ abstract class Model
 
     public static function query(): QueryBuilder
     {
-        $instance = new static();
+        $instance = $this->getContainer()->get(static::class);
         $qb = static::db()->createQueryBuilder();
         $qb->select('id', ...$instance->getAttributeNames())
             ->from(static::getTableName())
         ;
     }
 
-    public static function where(array|string $colOrQuery, mixed $value = null): static|array|null
+    public function where(array|string $colOrQuery, mixed $value = null): static|array|null
     {
-        $instance = new static();
-        $qb = static::db()->createQueryBuilder();
+        $instance = $this->getContainer()->get(static::class);
+        $qb = $this->getConnection()->createQueryBuilder();
         $qb->select('id', ...$instance->getAttributeNames())
             ->from(static::getTableName())
         ;
@@ -202,7 +208,7 @@ abstract class Model
         if ($result->rowCount() > 1) {
             $models = [];
             while ($row = $result->fetchAssociative()) {
-                $instance = new static();
+                $instance = $this->getContainer()->get(static::class);
                 $instance->load($row);
                 $models[] = $instance;
             }
@@ -216,13 +222,15 @@ abstract class Model
 
     public static function fromQuery(QueryBuilder $qb): array
     {
-        $values = $qb->getParameters();
+        $models = [];
 
+        $values = $qb->getParameters();
         $query = $qb->getSQL();
 
-        Db::getConnection()->executeQuery($query, $values);
+        $result = Db::getConnection()->executeQuery($query, $values);
+
         while ($row = $result->fetchAssociative()) {
-            $instance = new static();
+            $instance = $this->getContainer()->get(static::class);
             $instance->load($row);
             $models[] = $instance;
         }
@@ -232,7 +240,7 @@ abstract class Model
 
     public static function all(): array
     {
-        $instance = new static();
+        $instance = $this->getContainer()->get(static::class);
         $qb = static::db()->createQueryBuilder();
         $qb->select('id', ...$instance->getAttributeNames())
             ->from(static::getTableName())
@@ -244,7 +252,7 @@ abstract class Model
 
         $models = [];
         while ($row = $result->fetchAssociative()) {
-            $instance = new static();
+            $instance = $this->getContainer()->get(static::class);
             $instance->load($row);
             $models[] = $instance;
         }

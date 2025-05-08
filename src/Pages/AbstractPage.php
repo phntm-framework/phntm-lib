@@ -2,11 +2,8 @@
 
 namespace Phntm\Lib\Pages;
 
-use Phntm\Lib\Infra\Debug\Debugger;
-use Phntm\Lib\View\TemplateManager;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 abstract class AbstractPage extends Renderable
 {
@@ -45,7 +42,7 @@ abstract class AbstractPage extends Renderable
             $this->withContentType('text/html');
             return Stream::create('');
         }
-        Debugger::startMeasure('page_render', 'Rendering');
+        $this->debug()->startMeasure('page_render', 'Rendering');
 
         $this->twig->addView($this->full_render_view);
 
@@ -54,17 +51,9 @@ abstract class AbstractPage extends Renderable
             'phntm_meta' => $this->getMeta()
         ], $this->use_template);
 
-        Debugger::stopMeasure('page_render');
+        $this->debug()->stopMeasure('page_render');
 
         return Stream::create($body);
-    }
-
-    public function __get(string $name): mixed
-    {
-        if (array_key_exists($name, $this->dynamic_params)) {
-            return $this->dynamic_params[$name];
-        }
-        return null;
     }
 
     final public static function getManageClassName(): string

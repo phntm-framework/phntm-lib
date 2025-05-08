@@ -3,10 +3,8 @@
 namespace Phntm\Lib\Db;
 
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
-use Phntm\Lib\Config;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Configuration;
+use Phntm\Lib\Di\Container;
 
 class Db
 {
@@ -14,26 +12,13 @@ class Db
 
     public static Connection $connection;
 
-    public static function init(): void
-    {
-        if (self::$isInitialized) {
-            throw new \Exception('Db already initialized');
-        }
-
-        self::$connection = DriverManager::getConnection(
-            Config::retrieve('db.connection'),
-        );
-
-        self::$isInitialized = true;
-    }
-
     public static function getSchemaManager(): AbstractSchemaManager
     {
-        return self::$connection->createSchemaManager();
+        return Container::get()->get(AbstractSchemaManager::class);
     }
 
     public static function getConnection(): Connection
     {
-        return self::$connection;
+        return Container::get()->get(Connection::class);
     }
 }

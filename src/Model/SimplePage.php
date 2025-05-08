@@ -3,7 +3,7 @@
 namespace Phntm\Lib\Model;
 
 use DateTime;
-use Phntm\Lib\Config;
+use Phntm\Lib\Config\Config;
 use Phntm\Lib\Images\BaseImage;
 use Phntm\Lib\Model;
 use Phntm\Lib\Model\Attribute as Col;
@@ -54,7 +54,7 @@ class SimplePage extends Model
 
     public function getFullUrl(): string
     {
-        return rtrim(Config::env('SITE_URL'), '/') . $this->getSlug();
+        return rtrim($_ENV['SITE_URL'], '/') . $this->getSlug();
     }
 
     public function setupHooks(): void

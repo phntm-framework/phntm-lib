@@ -11,7 +11,7 @@ class Manage extends RichPage
 {
     use HasManageUrl;
 
-    public function __invoke(Request $request): void
+    public function __invoke(): void
     {
         $this->withScript('https://unpkg.com/@tailwindcss/browser@4');
     }

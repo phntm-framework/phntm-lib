@@ -2,13 +2,14 @@
 
 namespace Phntm\Lib\Http\Middleware;
 
-use Phntm\Lib\Infra\Debug\Debugger;
-use Phntm\Lib\Infra\Routing\Router as PhntmRouter;
-use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
-use Psr\Http\Message\ResponseFactoryInterface;
+use Phntm\Lib\Routing\RouterInterface;
 
 class Router implements \Psr\Http\Server\MiddlewareInterface
 {
+    public function __construct(
+        protected RouterInterface $router,
+    ) { }
+
     /**
      * Route a request to a defined Page, or return a relevant status code.
      *
@@ -20,14 +21,11 @@ class Router implements \Psr\Http\Server\MiddlewareInterface
         \Psr\Http\Message\ServerRequestInterface $request, 
         \Psr\Http\Server\RequestHandlerInterface $handler
     ): \Psr\Http\Message\ResponseInterface {
-        // convert PSR-7 request to Symfony request for use in router
-        $httpFoundationFactory = new HttpFoundationFactory();
-        $symfonyRequest = $httpFoundationFactory->createRequest($request);
 
-        $request = $request->withAttribute('symfonyRequest', $symfonyRequest);
-
-        // the router will return a found page or a relevant status code
-        $page = (new PhntmRouter($request->getAttribute('symfonyRequest')))->dispatch();
+        $page = $this->router
+            ->setRequest($request)
+            ->dispatch()
+        ;
 
         // pass the page up the middleware stack
         $response = $handler->handle($request->withAttribute('page', $page));

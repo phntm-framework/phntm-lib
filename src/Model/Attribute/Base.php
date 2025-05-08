@@ -3,6 +3,7 @@
 namespace Phntm\Lib\Model\Attribute;
 
 use Phntm\Lib\Model;
+use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -113,14 +114,15 @@ abstract class Base
         return $this->model->getOldValue($this->getColumnName());
     }
 
-    public function fromRequest(Request $request): mixed
+    public function fromRequest(ServerRequestInterface $request): mixed
     {
+        $post = $request->getParsedBody();
         // if the request does not have the column, return the current value
-        if (!$request->request->has($this->getColumnName())) {
+        if (!isset($post[$this->getColumnName()])) {
             return $this->model->{$this->getColumnName()};
         }
 
-        return $this->fromFormValue($request->request->get($this->getColumnName()));
+        return $this->fromFormValue($post[$this->getColumnName()]);
     }
 
     public function getOptions(): array

@@ -2,11 +2,11 @@
 
 namespace Phntm\Lib\Pages;
 
+use Doctrine\DBAL\Connection;
 use Phntm\Lib\Infra\Routing\Router;
-use Phntm\Lib\Db\Db;
 use Phntm\Lib\Model;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 
 
 abstract class AbstractManagePage extends RichPage implements Manageable
@@ -40,7 +40,7 @@ abstract class AbstractManagePage extends RichPage implements Manageable
     abstract protected function resolveEntityIdentifier(): null|int|array;
     abstract protected function handleEntityNotFound(): void;
 
-    public function dispatch(Request $request): StreamInterface
+    public function dispatch(PsrRequest $request): StreamInterface
     {
         $this->entity = $this->getEntityInstance();
         return parent::dispatch($request);
@@ -50,8 +50,11 @@ abstract class AbstractManagePage extends RichPage implements Manageable
     {
         $identifier = $this->resolveEntityIdentifier();
         $key = array_key_first($identifier);
-        $db = Db::getConnection();
+
+        /** @var Connection $db */
+        $db = $this->getContainer()->get(Connection::class);
         $qb = $db->createQueryBuilder();
+
         $qb->select('*')
             ->from($this->entityClass::getTableName())
             ->where($key . ' = :identifier')

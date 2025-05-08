@@ -5,7 +5,7 @@ namespace Phntm\Lib\Pages;
 use Nyholm\Psr7\Stream;
 use Phntm\Lib\View\TemplateManager;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 
 abstract class Renderable extends Endpoint implements CanRender
 {
@@ -29,9 +29,14 @@ abstract class Renderable extends Endpoint implements CanRender
 
     protected string $full_render_view;
 
-    public function dispatch(Request $request): StreamInterface
+    public function dispatch(PsrRequest $request): StreamInterface
     {
-        $this($request);
+        $this->setRequest($request);
+        $this->twig = $this->getContainer()->get(TemplateManager::class);
+
+        $this->debug()->startMeasure('page-invoke', 'Page invoke');
+        $this();
+        $this->debug()->stopMeasure('page-invoke');
 
         $this->preRender();
         return Stream::create($this->render());
@@ -39,24 +44,14 @@ abstract class Renderable extends Endpoint implements CanRender
 
     public function preRender(): void
     {
-        if (!isset($this->render_template)) {
-            $template = PHNTM . 'views/html.twig';
-
-            if ($this instanceof Manageable) {
-                $template = PHNTM . 'views/manage-html.twig';
-            }
-        } else {
-            $template = $this->render_template;
-        }
-        $this->twig = new TemplateManager($template);
     }
 
     public function render(): StreamInterface
     {
         $pageLocation = dirname((new \ReflectionClass(static::class))->getFileName());
-        $viewLocation = str_replace('Page.php', '', $pageLocation);
+        $viewLocation = str_replace('Page.php', 'view.twig', $pageLocation);
 
-        $this->twig->addViewPath($viewLocation);
+        $this->twig->addView($viewLocation);
 
         return Stream::create(
             $this->twig->environment()->render('view.twig', $this->getViewVariables())

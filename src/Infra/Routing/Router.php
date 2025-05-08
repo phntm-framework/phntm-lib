@@ -2,12 +2,14 @@
 
 namespace Phntm\Lib\Infra\Routing;
 
-use Phntm\Lib\Infra\Debug\Debugger;
-use Phntm\Lib\Infra\Routing\Attributes\Alias;
-use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
+use League\Container\ContainerAwareInterface;
+use League\Container\ContainerAwareTrait;
+use Phntm\Lib\Infra\Debug\Aware\DebugAwareInterface;
+use Phntm\Lib\Infra\Debug\Aware\DebugAwareTrait;
 use Phntm\Lib\Pages\Endpoint;
 use Phntm\Lib\Pages\EndpointInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Phntm\Lib\Routing\RouterInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
@@ -20,8 +22,11 @@ use Symfony\Component\Routing\RouteCollection;
  * gathers autoloaded classes from composer and checks route matches against 
  * existing namespaces
  */
-class Router
+class Router implements RouterInterface, ContainerAwareInterface, DebugAwareInterface
 {
+    use ContainerAwareTrait;
+    use DebugAwareTrait;
+
     private const CACHE_FILE = ROOT . '/tmp/cache/routes.php';
     private const STATIC_SEGMENT_WEIGHT = 256;  // 2^8
     private const DYNAMIC_SEGMENT_WEIGHT = 16;  // 2^4
@@ -38,15 +43,16 @@ class Router
 
     protected RequestContext $requestContext;
 
-    public function __construct(Request $request)
+    public function setRequest(ServerRequestInterface $request): static
     {
-        $context = (new RequestContext())->fromRequest($request);
+        $context = new RequestContext();
+
         $context->setPathInfo(rtrim($context->getPathInfo(), '/'));
 
         $this->requestContext = $context;
 
-        if (file_exists(self::CACHE_FILE) && !Debugger::$enabled) {
-            Debugger::log('Using cached routes', 'info');
+        if (file_exists(self::CACHE_FILE) && !$this->debug()->enabled()) {
+            $this->debug()->log('Using cached routes', 'info');
 
             $compiledRoutes = $this->getCachedRoutes();
 
@@ -57,10 +63,12 @@ class Router
 
             $this->matcher = new UrlMatcher($this->routes, $context);
 
-            if (!Debugger::$enabled) {
+            if (!$this->debug()->enabled()) {
                 $this->cacheRoutes();
             }
         }
+
+        return $this;
     }
 
     /**
@@ -71,7 +79,7 @@ class Router
      */
     public function indexRoutes(): void
     {
-        Debugger::startMeasure('router.index', 'Index Routes');
+        $this->debug()->startMeasure('router.index', 'Index Routes');
         $this->routes = new RouteCollection();
 
         $classes = $this->autoload();
@@ -81,7 +89,7 @@ class Router
                 $pageClass::registerRoutes($this->routes);
             }
         }
-        Debugger::stopMeasure('router.index');
+        $this->debug()->stopMeasure('router.index');
     }
 
     /**
@@ -91,10 +99,10 @@ class Router
      */
     public function dispatch(): EndpointInterface | int
     {
-        Debugger::getBar()['time']->startMeasure('router.dispatch', 'Dispatch Route');
+        $this->debug()->startMeasure('router.dispatch', 'Dispatch Route');
         try {
             $attributes = $this->matcher->match($this->requestContext->getPathInfo());
-            Debugger::log($attributes, 'info');
+            $this->debug()->log($attributes, 'info');
 
             $parts = explode('::', $attributes['_route']);
             $attributes['_route'] = $parts[0];
@@ -107,7 +115,9 @@ class Router
             unset($attributes['_route']);
 
             /** @var EndpointInterface $page */
-            $page = new $route($attributes);
+            $page = $this->getContainer()->get($route);
+            $page->setDynamicParams($attributes);
+
 
             if (isset($parts[1])) {
                 $page->matchedAction = $parts[1];
@@ -121,10 +131,11 @@ class Router
             return $this->notFound ? new $this->notFound : 404;
         } catch (\Exception $exception) {
 
+            dd($exception);
             // if any error occurs
             return 500;
         } finally {
-            Debugger::getBar()['time']->stopMeasure('router.dispatch');
+            $this->debug()->stopMeasure('router.dispatch');
         }
     }
 
@@ -263,7 +274,7 @@ class Router
         $segments = array_filter(explode('/', trim($path, '/')));
         
         if (empty($segments)) {
-            return 0;
+            return 9999;
         }
 
         $priority = 0;

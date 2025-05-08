@@ -3,15 +3,17 @@
 namespace Phntm\Lib\Images;
 
 use Closure;
-use Phntm\Lib\Infra\Debug\Debugger;
+use Phntm\Lib\Di\Container;
 use Phntm\Lib\View\Elements\HasClasses;
-use Spatie\Image\Enums\ImageDriver;
+use Spatie\Image\Drivers\ImageDriver;
 use Stringable;
 use Spatie\Image\Image;
 use function dirname;
 
 class BaseImage implements ImageInterface, Stringable, HasClasses
 {
+    protected static array $baseConfigurators = [];
+
     protected string $originalSource;
     protected string $source;
     protected string $location;
@@ -24,7 +26,7 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
         string $source, 
         string|bool $alias = false, 
         public string $alt = '',
-        Closure $config = null,
+        ?Closure $config = null,
     ) {
         $this->originalSource = $source;
 
@@ -40,9 +42,8 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
             $this->location = ltrim($this->source, ROOT . '/images/uploads/');
         }
 
-
-
-        $this->configurator = Image::useImageDriver(ImageDriver::Gd)->loadFile($this->getSource());
+        $this->configurator = Container::get()->get(ImageDriver::class);
+        $this->configurator->loadFile($this->getSource());
 
         if (!is_null($config)) {
             $this->configurator = $config($this->configurator);
@@ -59,7 +60,6 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
     public function validate(): void
     {
         // if the public image does not exist, publish the source image
-
     }
 
     public function getSrc(): string
@@ -89,7 +89,6 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
         if (!isset($this->hash)) {
             // build a hash using the values of the image configuration
             $this->hash = md5($this->configurator->base64());
-            Debugger::log("Image hash: {$this->hash}");
         }
 
 
@@ -99,7 +98,6 @@ class BaseImage implements ImageInterface, Stringable, HasClasses
     public function generateIfNeeded(): void
     {
         if (!file_exists($this->getPublicLocation())) {
-            Debugger::log("Generating image: {$this->location}");
             $this->makePublic();
         }
     }

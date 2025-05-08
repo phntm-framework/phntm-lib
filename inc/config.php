@@ -3,8 +3,10 @@
 /** @var array $config */
 return [
     'auth' => [
-        'username' => 'admin',
-        'password' => 'password',
+        'admin' => [
+            'username' => 'admin',
+            'password' => 'password',
+        ],
         'encryption' => [
             'key' => '1234567890123456',
         ],
@@ -35,6 +37,18 @@ return [
         ],
         'source' => ROOT . '/images',
         'distribute' => ROOT . '/public/images',
+    ],
+    'routing' => [
+        'cache' => [
+            'enabled' => true,
+            'key' => 'phntm.lib.routing.cache',
+            'ttl' => 3600,
+        ],
+    ],
+    'view' => [
+        'load_from' => [
+            ROOT . PHNTM . 'views',
+        ],
     ],
     'site' => [
         'logo' => 'images/logo.png',

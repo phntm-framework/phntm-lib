@@ -3,11 +3,10 @@
 namespace Phntm\Lib\Pages\Manage;
 
 use Phntm\Lib\Pages\AbstractManagePage;
-use Symfony\Component\HttpFoundation\Request;
 
-class Singleton extends AbstractManagePage
+abstract class Singleton extends AbstractManagePage
 {
-    public function __invoke(Request $request): void
+    public function __invoke(): void
     {
         $this->getEntityInstance();
 

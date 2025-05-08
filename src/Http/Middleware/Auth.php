@@ -2,6 +2,7 @@
 
 namespace Phntm\Lib\Http\Middleware;
 
+use Phntm\Lib\Di\Container;
 use Phntm\Lib\Pages\EndpointInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Phntm\Lib\Auth\Attributes\Auth as AuthAttribute;
@@ -46,7 +47,11 @@ class Auth implements \Psr\Http\Server\MiddlewareInterface
         $this->handleLogin($request);
 
         if (!$this->isAuthorized($request)) {
-            return $handler->handle($request->withAttribute('page', new LoginPage()));
+            $container = Container::get();
+            $container->extend(EndpointInterface::class)
+                ->setConcrete(LoginPage::class)
+            ;
+            return $handler->handle($request->withAttribute('page', $container->get(EndpointInterface::class)));
         }
 
         return $handler->handle($request);

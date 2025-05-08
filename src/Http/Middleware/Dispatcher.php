@@ -2,23 +2,14 @@
 
 namespace Phntm\Lib\Http\Middleware;
 
-use Phntm\Lib\Di\Container;
 use Phntm\Lib\Pages\EndpointInterface;
-use Phntm\Lib\Pages\PageInterface;
 use Psr\Http\Message\ResponseFactoryInterface;
 
 class Dispatcher implements \Psr\Http\Server\MiddlewareInterface
 {
-    private ResponseFactoryInterface $responseFactory;
-    /**
-     * Dispatcher constructor.
-     * setup the response factory
-     *
-     * @param ResponseFactoryInterface $responseFactory
-     */
-    public function __construct() {
-        $this->responseFactory = Container::get()->get(ResponseFactoryInterface::class);
-    }
+    public function __construct(
+        private ResponseFactoryInterface $responseFactory
+    ) { }
 
     /**
      * Renders the page provided by the router, or return a response with an
@@ -42,13 +33,10 @@ class Dispatcher implements \Psr\Http\Server\MiddlewareInterface
         $response = $this->responseFactory->createResponse();
 
         // render the page content
-        $body = $page->dispatch($request->getAttribute('symfonyRequest'));
+        $body = $page->dispatch($request);
 
         if ($body->getSize() === 0) {
-            if (!isLocal()) {
-                return $response->withStatus(204);
-            }
-            $body->write('Page body is empty - likely no view.twig or view.twig is empty');
+            return $response->withStatus(204);
         }
 
         $response = $response->withHeader('Content-Type', $page->getContentType());

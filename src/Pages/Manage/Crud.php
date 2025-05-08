@@ -2,6 +2,7 @@
 
 namespace Phntm\Lib\Pages\Manage;
 
+use Doctrine\DBAL\Driver\Connection;
 use Phntm\Lib\Db\Db;
 use Phntm\Lib\Http\Redirect;
 use Phntm\Lib\Infra\Routing\Attributes\Action;
@@ -16,11 +17,11 @@ abstract class Crud extends AbstractManagePage
     use HasActions;
 
     #[Action('/')]
-    public function index(Request $request): void
+    public function index(): void
     {
         $this->render_view = ROOT . PHNTM . 'views/manage-table.twig';
 
-        $db = Db::getConnection();
+        $db = $this->getContainer()->get(Connection::class);
         $qb = $db->createQueryBuilder();
         $qb->select('*')
             ->from($this->entityClass::getTableName())
@@ -38,11 +39,13 @@ abstract class Crud extends AbstractManagePage
     }
 
     #[Action('/create')]
-    public function create(Request $request): void
+    public function create(): void
     {
-        if ($request->isMethod('POST')) {
+        $request = $this->getRequest();
+
+        if ('POST' === $request->getMethod()) {
             $this->entity = new $this->entityClass;
-            foreach ($request->request->all() as $col => $value) {
+            foreach ($request->getParsedBody() as $col => $value) {
                 $attr = $this->entity->getAttribute($col);
                 $this->entity->{$col} = $attr->fromFormValue($value);
             }
@@ -61,9 +64,9 @@ abstract class Crud extends AbstractManagePage
     }
 
     #[Action('/edit/{identifier}')]
-    public function edit(Request $request): void
+    public function edit(): void
     {
-        if ($request->isMethod('POST')) {
+        if ('POST' === $this->getRequest()->getMethod()) {
             $this->getEntityInstance();
 
         }
@@ -75,7 +78,7 @@ abstract class Crud extends AbstractManagePage
     }
 
     #[Action('/delete/{identifier}')]
-    public function delete(Request $request): void
+    public function delete(): void
     {
         $db = Db::getConnection();
         $qb = $db->createQueryBuilder();
@@ -137,5 +140,4 @@ abstract class Crud extends AbstractManagePage
             'index' => $this->resolveBaseRoute()['path'],
         ];
     }
-
 }

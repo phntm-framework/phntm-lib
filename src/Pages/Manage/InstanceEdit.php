@@ -4,27 +4,26 @@ namespace Phntm\Lib\Pages\Manage;
 
 use Phntm\Lib\Http\Redirect;
 use Phntm\Lib\Pages\AbstractManagePage;
-use Symfony\Component\HttpFoundation\Request;
 
 abstract class InstanceEdit extends AbstractManagePage
 {
     protected ?string $backLink = null;
 
-    public function __invoke(Request $request): void
+    public function __invoke(): void
     {
-        if ($request->isMethod('POST')) {
+        if ('POST' === $this->getRequest()->getMethod()) {
             if (!$this->entity) {
                 $this->entity = new $this->entityClass;
             }
 
             foreach ($this->entity->getAttributes() as $col => $attribute) {
-                $this->entity->{$col} = $attribute->fromRequest($request);
+                $this->entity->{$col} = $attribute->fromRequest($this->getRequest());
             }
 
             $this->entity->save();
 
             // redirect to this page
-            throw new Redirect($request->getRequestUri(), 302);
+            throw new Redirect($this->getRequest()->getUri(), 302);
         }
 
         $this->renderWith([

@@ -2,34 +2,67 @@
 
 namespace Phntm\Lib\Pages;
 
+use League\Container\ContainerAwareInterface;
+use League\Container\ContainerAwareTrait;
 use Nyholm\Psr7\Stream;
+use Phntm\Lib\Infra\Debug\Aware\DebugAwareInterface;
+use Phntm\Lib\Infra\Debug\Aware\DebugAwareTrait;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Infra\Routing\Attributes\Alias;
 use Phntm\Lib\Infra\Routing\Router;
 use Phntm\Lib\Infra\Routing\HasResolvableParts;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 use Psr\Http\Message\StreamInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Psr\Http\Server\RequestHandlerInterface;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Route;
 
-abstract class Endpoint implements EndpointInterface, HasResolvableParts
+abstract class Endpoint implements 
+    RequestHandlerInterface,
+    EndpointInterface, 
+    HasResolvableParts, 
+    ContainerAwareInterface,
+    DebugAwareInterface
 {
+    use ContainerAwareTrait;
+    use DebugAwareTrait;
+
     public static bool $hideFromSitemap = false;
-    /**
-     * @param array $dynamic_params
-     */
-    public function __construct(
-        protected array $dynamic_params = []
-    ) {
+
+    private PsrRequest $request;
+
+    protected array $dynamic_params = [];
+
+    protected array $part_resolvers = [];
+
+    public function setDynamicParams(array $dynamic_params): void
+    {
+        $this->dynamic_params = array_merge($dynamic_params, $this->dynamic_params);
     }
 
-    abstract public function __invoke(Request $request): void;
+    abstract public function __invoke(): void;
 
     public function __get(string $name): mixed
     {
+        if (array_key_exists($name, $this->part_resolvers)) {
+            $this->dynamic_params[$name] = $this->part_resolvers[$name]();
+        }
+
         if (array_key_exists($name, $this->dynamic_params)) {
             return $this->dynamic_params[$name];
         }
+
+        return null;
+    }
+
+    public function __call(string $name, array $arguments): mixed
+    {
+        if (array_key_exists($name, $this->part_resolvers)) {
+            return $this->part_resolvers[$name]();
+        }
+
         return null;
     }
 
@@ -38,9 +71,11 @@ abstract class Endpoint implements EndpointInterface, HasResolvableParts
         return array_key_exists($name, $this->dynamic_params);
     }
 
-    public function dispatch(Request $request): StreamInterface
+    public function dispatch(PsrRequest $request): StreamInterface
     {
-        $this($request);
+        $this->setRequest($request);
+
+        $this();
         // this will never be called, the Endpoint class is only for redirects etc
         return Stream::create('');
     }
@@ -90,7 +125,9 @@ abstract class Endpoint implements EndpointInterface, HasResolvableParts
 
     public function registerPartResolver(string $part, callable $resolver): void
     {
-        $this->dynamic_params[$part] = $resolver($this->dynamic_params);
+        $this->part_resolvers[$part] = function () use ($resolver) {
+            return $resolver($this->dynamic_params);
+        };
     }
 
     public static function url(array $params = []): string
@@ -103,5 +140,21 @@ abstract class Endpoint implements EndpointInterface, HasResolvableParts
         }
 
         return $url;
+    }
+
+    public function setRequest(PsrRequest $request): void
+    {
+        $this->request = $request;
+    }
+
+    public function getRequest(bool $symfony = false): PsrRequest|SymfonyRequest
+    {
+        return $this->request;
+    }
+
+    public function handle(PsrRequest $request): ResponseInterface
+    {
+        $this->setRequest($request);
+        return $this->dispatch($request);
     }
 }

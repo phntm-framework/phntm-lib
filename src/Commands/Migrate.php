@@ -4,6 +4,7 @@ namespace Phntm\Lib\Commands;
 
 use Phntm\Lib\Config;
 use Phntm\Lib\Db\Db;
+use Phntm\Lib\Di\Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -63,7 +64,7 @@ class Migrate extends Command
         
         $output->write('Exists');
 
-        $sm = Db::getSchemaManager();
+        $sm = Container::get()->get(\Doctrine\DBAL\Schema\AbstractSchemaManager::class);
 
         $comparator = $sm->createComparator();
 

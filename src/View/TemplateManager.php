@@ -2,59 +2,21 @@
 
 namespace Phntm\Lib\View;
 
-use Phntm\Lib\Config;
-use Phntm\Lib\Infra\Debug\Debugger;
+use Twig\Environment;
+use Twig\Loader\LoaderInterface;
 use Twig\Runtime\EscaperRuntime;
 
 class TemplateManager 
 {
-    protected \Twig\Environment $environment;
-
-    protected \Twig\Loader\FilesystemLoader $loader;
-
-    protected string $template_file;
-
     protected string $view_file;
 
-    public function __construct(string $template_location)
-    {
-        $template_directory = ROOT . '/' . dirname($template_location);
-        $this->template_file = basename($template_location);
-
-        $this->loader = new \Twig\Loader\FilesystemLoader([
-            $template_directory,
-            ...Config::retrieve('view.load_from'),
-        ]);
-
-        $this->environment = new \Twig\Environment($this->loader, [
-            'cache' => ROOT . '/tmp/cache/twig',
-            'debug' => true,
-            'strict_variables' => true,
-        ]);
-
-        $this->environment->addExtension(new Twig\Extension());
-
-
-        // Escaping
+    public function __construct(
+        protected Environment $environment,
+        protected LoaderInterface $loader,
+    ) {
         $this->environment->getRuntime(EscaperRuntime::class)
-            ->addSafeClass(\Phntm\Lib\Images\ImageInterface::class, ['html']);
-
-        // Debug
-        if (Debugger::$enabled) {
-            $this->environment->addExtension(new \Twig\Extension\DebugExtension());
-            $profile = new \Twig\Profiler\Profile();
-            $this->environment->addExtension(
-                new \DebugBar\Bridge\Twig\TimeableTwigExtensionProfiler($profile, Debugger::getBar()['time'])
-            );
-
-            $this->environment->enableDebug();
-            $this->environment->addExtension(new \DebugBar\Bridge\Twig\DumpTwigExtension());
-            $this->environment->addExtension(new \DebugBar\Bridge\Twig\DebugTwigExtension(Debugger::getBar()['messages']));
-
-            if (!Debugger::getBar()->hasCollector('twig')) {
-                Debugger::getBar()->addCollector(new \DebugBar\Bridge\NamespacedTwigProfileCollector($profile, $this->environment));
-            }
-        }
+            ->addSafeClass(\Phntm\Lib\Images\ImageInterface::class, ['html'])
+        ;
     }
 
     public function addView(string $view_location): void
@@ -62,33 +24,12 @@ class TemplateManager
         $this->view_file = basename($view_location);
         $view_directory = dirname($view_location);
 
-        try {
-            $this->addViewPath($view_directory);
-        } catch (\Throwable $e) {
-            dump($e);
-            exit;
-        }
-    }
-
-    public function addTemplate(string $template_location): void
-    {
-        $this->template_file = basename($template_location);
-        $template_directory = dirname($template_location);
-
-        try {
-            $this->addViewPath($template_directory);
-        } catch (\Throwable $e) {
-            dump($e);
-            exit;
-        }
-
+        $this->loader->addPath($view_directory);
     }
 
     public function addViewPath(string $view_path): void
     {
         $this->loader->addPath($view_path);
-        // update the environment with the new loader
-        $this->environment->setLoader($this->loader);
     }
 
     public function renderTemplate(array $data): string

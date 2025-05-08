@@ -22,7 +22,7 @@ The endpoint is a modified concept of a controller, similar to invokable control
 
 ## Installation
 
-Phntm starter project is coming soon, but for now you would need an nginx server, and a mysql database.
+Phntm starter project is coming soon, but for now you would need an apache server, and a mysql database.
 
 ## Routing
 
@@ -64,3 +64,74 @@ If you go to /manage/pages you can see a table listing any pages you have create
 ### Manage.php
 
 If you hadn't figured it out, a Manage.php file at a given location will register a route the same as Page.php, but prepended with /manage, these pages don't require a view.twig as their content is generated based on the class it extends, so far these are Listing, InstanceEdit and Singleton
+
+## Config
+
+Phntm comes with a set of configuration values with it's core library, but your site's needs will either differ or expand upon these, so you can merge your own config values ontop of the base configuration, this is done either using php or yaml
+
+```php
+<?php
+
+/** @var array $config */
+return [
+    'auth' => [
+        'admin' => [
+            'username' => 'admin',
+            'password' => 'admin',
+        ],
+    ],
+    'db' => [
+        'models' => [
+            __DIR__ . '/src/Model/' => 'Site\Model',
+        ],
+        'connection' => [
+            'driver' => 'pdo_mysql',
+            'host' => 'db',
+            'dbname' => 'app_db',
+            'user' => 'app_user',
+            'password' => 'app_password',
+        ],
+    ],
+    'site' => [
+        'name' => 'Acme',
+        'logo' => '/images/logo.png',
+    ],
+    'view' => [
+        'load_from' => [
+            ROOT . '/view',
+        ]
+    ],
+    'images' => [
+        'load_from' => [
+            ROOT . '/images',
+        ],
+        'public' => ROOT . '/public',
+    ],
+];
+```
+
+```yaml
+auth:
+  admin:
+    username: admin
+    password: admin
+db:
+  models:
+    /src/Model/: Site\Model
+  connection:
+    driver: pdo_mysql
+    host: db
+    dbname: app_db
+    user: app_user
+    password: app_password
+site:
+  name: Acme
+  logo: /images/logo.png
+view:
+  load_from:
+    - /var/www/html/view
+images:
+  load_from:
+    - /images
+  public: /public
+```
