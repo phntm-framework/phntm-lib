@@ -4,7 +4,6 @@ namespace Phntm\Lib\Model\Attribute;
 
 use Phntm\Lib\Model;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Base for all model data attributes

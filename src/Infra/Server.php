@@ -6,7 +6,6 @@ use Phntm\Lib\Cache\Provider as CacheModule;
 use Phntm\Lib\Config\Provider as ConfigModule;
 use Phntm\Lib\Db\Provider as DbModule;
 use Phntm\Lib\Di\ContainerAware;
-use Phntm\Lib\Http\Middleware\Auth;
 use Phntm\Lib\Http\Middleware\Dispatcher;
 use Phntm\Lib\Http\Middleware\Redirect;
 use Phntm\Lib\Http\Middleware\Router;
@@ -23,11 +22,8 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Middlewares\Whoops;
 use Middlewares\Debugbar as DebugMiddleware;
-use function class_exists;
 use function microtime;
 use function ob_clean;
-use function realpath;
-use function serialize;
 
 class Server implements DebugAwareInterface, RequestHandlerInterface
 {
@@ -54,20 +50,20 @@ class Server implements DebugAwareInterface, RequestHandlerInterface
             DebugMiddleware::class,
             Redirect::class,
             Router::class,
-            Auth::class,
             Dispatcher::class,
         ],
         ?string $config = null
     ) {
         static::$config = $config;
-        $this->provision($modules, $config);
+
+        $this->provision($modules);
 
         $this->debug()->startMeasure('server-init', 'Server Initialization');
 
         if (!$this->debug()->enabled()) {
             $middleware = array_filter($middleware, function ($item) {
                 $nonProd = [
-                    Whoops::class,
+                    // Whoops::class,
                     DebugMiddleware::class,
                 ];
                 return !in_array($item, $nonProd);
@@ -87,7 +83,6 @@ class Server implements DebugAwareInterface, RequestHandlerInterface
 
     public function provision(
         array $modules = [],
-        ?string $config = null
     ): void {
         // Dependency Injection Container
 

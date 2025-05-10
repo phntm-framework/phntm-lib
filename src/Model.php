@@ -10,6 +10,7 @@ use Phntm\Lib\Model\Attribute as Col;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Phntm\Lib\Db\Db;
+use Phntm\Lib\Model\Finder;
 use Phntm\Lib\Model\IsDbAware;
 use Phntm\Lib\Model\HasAttributes;
 
@@ -283,5 +284,10 @@ abstract class Model implements ContainerAwareInterface, ConnectionAwareInterfac
 
     public function setupHooks(): void
     {
+    }
+
+    public function getFinder(): Finder
+    {
+        return $this->getContainer()->get(Finder::class)->forModel(static::class);
     }
 }

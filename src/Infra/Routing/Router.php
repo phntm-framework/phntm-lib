@@ -95,7 +95,7 @@ class Router implements RouterInterface, ContainerAwareInterface, DebugAwareInte
     /**
      * Dispatches a route from a given request and returns a page or status code
      *
-     * @returns PageInterface | int
+     * @returns EndpointInterface | int
      */
     public function dispatch(): EndpointInterface | int
     {

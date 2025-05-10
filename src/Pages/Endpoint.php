@@ -9,13 +9,12 @@ use Phntm\Lib\Infra\Debug\Aware\DebugAwareInterface;
 use Phntm\Lib\Infra\Debug\Aware\DebugAwareTrait;
 use Phntm\Lib\Infra\Routing\Attributes\Dynamic;
 use Phntm\Lib\Infra\Routing\Attributes\Alias;
-use Phntm\Lib\Infra\Routing\Router;
+use Phntm\Lib\Routing\UtilsTrait as RoutingUtils;
 use Phntm\Lib\Infra\Routing\HasResolvableParts;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface as PsrRequest;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\Route;
 
@@ -28,10 +27,11 @@ abstract class Endpoint implements
 {
     use ContainerAwareTrait;
     use DebugAwareTrait;
+    use RoutingUtils;
 
     public static bool $hideFromSitemap = false;
 
-    private PsrRequest $request;
+    private ServerRequestInterface $request;
 
     protected array $dynamic_params = [];
 
@@ -71,7 +71,7 @@ abstract class Endpoint implements
         return array_key_exists($name, $this->dynamic_params);
     }
 
-    public function dispatch(PsrRequest $request): StreamInterface
+    public function dispatch(ServerRequestInterface $request): StreamInterface
     {
         $this->setRequest($request);
 
@@ -92,16 +92,16 @@ abstract class Endpoint implements
 
         $route = [
             'name' => static::class,
-            'path' => Router::n2r(static::class),
+            'path' => static::n2r(static::class),
             'defaults' => [],
-            'priority' => Router::calcRoutePriority(Router::n2r(static::class))
+            'priority' => static::calcRoutePriority(static::n2r(static::class))
         ];
 
         if (static::isDynamic()) {
             $attribute = $reflection->getAttributes(Dynamic::class)[0]->newInstance();
 
             $route['path'] = Dynamic::getTypeSafePath($attribute->denoted_namespace);
-            $route['priority'] = Router::calcRoutePriority($route['path']);
+            $route['priority'] = static::calcRoutePriority($route['path']);
             $route['defaults'] = $attribute->defaults;
         } 
 
@@ -142,17 +142,17 @@ abstract class Endpoint implements
         return $url;
     }
 
-    public function setRequest(PsrRequest $request): void
+    public function setRequest(ServerRequestInterface $request): void
     {
         $this->request = $request;
     }
 
-    public function getRequest(bool $symfony = false): PsrRequest|SymfonyRequest
+    public function getRequest(bool $symfony = false): ServerRequestInterface
     {
         return $this->request;
     }
 
-    public function handle(PsrRequest $request): ResponseInterface
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $this->setRequest($request);
         return $this->dispatch($request);

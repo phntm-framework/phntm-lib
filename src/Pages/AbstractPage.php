@@ -27,11 +27,6 @@ abstract class AbstractPage extends Renderable
             // render_view is a relative path from the page class
             $this->full_render_view = $pageDirectory . '/' . $this->render_view;
 
-        } elseif (file_exists(PAGES . $this->render_view)) {
-
-            // render_view is a relative path from the PAGES directory
-            $this->full_render_view = PAGES . $this->render_view;
-
         } elseif (file_exists(ROOT . $this->render_view)) {
 
             // render_view is a full path from the root of the project

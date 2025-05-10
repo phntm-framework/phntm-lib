@@ -2,10 +2,8 @@
 
 namespace Pages\ForgotPassword;
 
-use Phntm\Lib\Infra\Routing\Router;
 use Phntm\Lib\Pages\RichPage;
 use Phntm\Lib\Pages\Traits\HasManageUrl;
-use Symfony\Component\HttpFoundation\Request;
 
 class Manage extends RichPage
 {

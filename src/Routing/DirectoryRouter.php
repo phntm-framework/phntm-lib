@@ -55,6 +55,7 @@ class DirectoryRouter implements RouterInterface, ContainerAwareInterface, Debug
         );
 
         $routes = $this->routeCache->get();
+        $routes = null;
         if (null !== $routes) {
             $this->matcher = new CompiledUrlMatcher($routes, $this->requestContext);
         } else {

@@ -49,7 +49,9 @@ abstract class Renderable extends Endpoint implements CanRender
     public function render(): StreamInterface
     {
         $pageLocation = dirname((new \ReflectionClass(static::class))->getFileName());
-        $viewLocation = str_replace('Page.php', 'view.twig', $pageLocation);
+        $classname = (new \ReflectionClass(static::class))->getShortName();
+        $viewLocation = str_replace($classname, 'view.twig', $pageLocation);
+        dd($pageLocation, $viewLocation);
 
         $this->twig->addView($viewLocation);
 

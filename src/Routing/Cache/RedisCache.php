@@ -50,7 +50,8 @@ class RedisCache implements RouteCacheInterface, DebugAwareInterface, ConfigAwar
 
         $item->set($compiledRoutes);
         $item->expiresAfter(
-            $this->config()->retrieve('routing.cache.ttl')
+            0
+            //$this->config()->retrieve('routing.cache.ttl')
         );
 
         return $this->cache->save($item);

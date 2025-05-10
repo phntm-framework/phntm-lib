@@ -7,12 +7,15 @@ use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 use Phntm\Lib\Db\Aware\ConnectionAwareInterface;
 use Phntm\Lib\Db\Aware\ConnectionAwareTrait;
+use Phntm\Lib\Infra\Debug\Aware\DebugAwareInterface;
+use Phntm\Lib\Infra\Debug\Aware\DebugAwareTrait;
 use Phntm\Lib\Model;
 
-class Finder implements ConnectionAwareInterface, ContainerAwareInterface
+class Finder implements ConnectionAwareInterface, ContainerAwareInterface, DebugAwareInterface
 {
     use ConnectionAwareTrait;
     use ContainerAwareTrait;
+    use DebugAwareTrait;
 
     /* SPECIFICITY */
 
@@ -86,6 +89,8 @@ class Finder implements ConnectionAwareInterface, ContainerAwareInterface
             $qb->getSQL(),
             $qb->getParameters(),
         );
+        $this->debug()->log($qb->getSQL(), 'db');
+        $this->debug()->log($qb->getParameters(), 'db');
 
         $models = [];
         while ($row = $result->fetchAssociative()) {

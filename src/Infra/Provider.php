@@ -45,7 +45,9 @@ class Provider extends ModuleProvider
             ;
 
             $this->getContainer()->addShared(PhpInfoCollector::class);
-            $this->getContainer()->addShared(MessagesCollector::class);
+            $this->getContainer()->addShared(MessagesCollector::class)
+                //->addMethodCall('useHtmlVarDumper', [false])
+            ;
             $this->getContainer()->addShared(RequestDataCollector::class);
             $this->getContainer()->addShared(TimeDataCollector::class);
             $this->getContainer()->addShared(MemoryCollector::class);
