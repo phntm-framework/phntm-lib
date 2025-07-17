@@ -91,12 +91,14 @@ class Finder implements ConnectionAwareInterface, ContainerAwareInterface, Debug
         );
         $this->debug()->log($qb->getSQL(), 'db');
         $this->debug()->log($qb->getParameters(), 'db');
+        $this->debug()->log((new \Exception())->getTraceAsString(), 'db');
 
         $models = [];
         while ($row = $result->fetchAssociative()) {
-            $instance = $this->getNewInstance();
+            $res = $this->getNewInstance();
+            $instance = $res;
             $instance->load($row);
-            $models[] = $instance;
+            array_push($models, $instance);
         }
 
         return $models;

@@ -22,7 +22,7 @@ class Provider extends ModuleProvider
     public function definitions(): void
     {
         $this->getContainer()
-            ->add(\Phntm\Lib\Routing\RouterInterface::class, DirectoryRouter::class)
+            ->addShared(\Phntm\Lib\Routing\RouterInterface::class, DirectoryRouter::class)
             ->addArgument(Cache\RedisCache::class)
             ->addArgument(RedisAdapter::class)
         ;

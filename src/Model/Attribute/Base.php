@@ -118,7 +118,7 @@ abstract class Base
         $post = $request->getParsedBody();
         // if the request does not have the column, return the current value
         if (!isset($post[$this->getColumnName()])) {
-            return $this->model->{$this->getColumnName()};
+            return $this->model->{$this->getColumnName()} ?? null;
         }
 
         return $this->fromFormValue($post[$this->getColumnName()]);

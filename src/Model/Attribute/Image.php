@@ -7,6 +7,7 @@ use Nyholm\Psr7\UploadedFile;
 use Phntm\Lib\Images\BaseImage;
 use Phntm\Lib\Di\Container;
 use Psr\Http\Message\ServerRequestInterface;
+use function file_exists;
 use function get_class;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -26,15 +27,24 @@ class Image extends Base
 
             /** @var BaseImage $old */
             $old = $this->getOldValue();
-            $oldLocation = $old->getSrc();
+            $oldLocation = $old?->getSrc();
 
             /** @var ServerRequestInterface $request */
             $request = Container::get()->get(ServerRequestInterface::class);
-            $files = $request->getUploadedFiles()[static::getColumnName() . '.new'];
-            dd($files, $oldLocation, $old);
 
-            $location = $this->getFileSaveLocation($files, $this->model);
-            $newImage = new BaseImage($location);
+            /** @var UploadedFile $files */
+            $files = $request->getUploadedFiles()[static::getColumnName() . '_new'] ?? null;
+
+            $newLocation = $this->getFileSaveLocation($files, $this->model);
+            if (!file_exists($newLocation)) {
+                mkdir($newLocation, 0777, true);
+            }
+            $newLocation = $newLocation . '/' . $files->getClientFilename();
+
+            $files->moveTo($newLocation);
+
+            $newImage = new BaseImage($newLocation);
+            $newImage->generateIfNeeded();
 
             $this->model->{static::getColumnName()} = $newImage;
         });
@@ -82,6 +92,7 @@ class Image extends Base
         if (is_null($value)) {
             return null;
         }
+        
         return new BaseImage($value);
     }
 
@@ -95,5 +106,27 @@ class Image extends Base
         $input = parent::getFormAttributes();
 
         return $input;
+    }
+
+    public function fromRequest(ServerRequestInterface $request): mixed
+    {
+        $files = $request->getUploadedFiles();
+        // if the request does not have the column, return the current value
+        if (!isset($files[$this->getColumnName().'new'])) {
+            return $this->model->{$this->getColumnName()} ?? null;
+        }
+
+        /** @var \Nyholm\Psr7\UploadedFile $file */
+        $file = $files[$this->getColumnName().'new'];
+
+        dd($file);
+        return $this->fromFormValue($file->getClientFilename());
+    }
+
+    public function getDbValue(): mixed
+    {
+        /** @var BaseImage $image */
+        $image = $this->model->{$this->getColumnName()};
+        return $image->getOriginalSource();
     }
 }

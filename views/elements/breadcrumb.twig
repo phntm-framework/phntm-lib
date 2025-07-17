@@ -1,0 +1,12 @@
+<ul class="flex gap-2">
+    {% for crumb in breadcrumbs %}
+        <li class="">
+            <a href="#" class="text-indigo-600 hover:text-indigo-700">
+                {{ crumb }}
+            </a>
+        </li>
+        {% if not loop.last %}
+            <span class="text-gray-500 font-semibold">&gt;</span>
+        {% endif %}
+    {% endfor %}
+</ul>

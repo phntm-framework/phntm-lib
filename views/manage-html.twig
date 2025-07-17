@@ -6,8 +6,13 @@
     </head>
     <body class="manage relative min-h-screen bg-gray-100 flex items-stretch {% block body_class %}{% endblock %}">
         {% include 'nav/sidebar.twig' %}
-        <div class="w-full py-12 px-2 sm:px-6 lg:px-8">
-            <main class="h-full">
+        <div class="w-full pt-6 pb-12 px-2 sm:px-6 lg:px-8">
+            <header class="w-full bg-white border border-gray-200 shadow-xs px-3 py-1 text-indigo-700">
+                {% include 'elements/breadcrumb.twig' with {
+                    breadcrumbs: breadcrumbs,
+                } %}
+            </header>
+            <main class="h-full pt-4">
                 {% block body %}{% endblock body %}
             </main>
             <footer class="fixed bottom-0 left-0 right-0 w-full flex justify-end gap-4 py-1 px-4">

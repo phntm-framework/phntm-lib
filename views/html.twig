@@ -2,6 +2,7 @@
 <html>
     <head>
         {{ phntm_meta.head|raw }}
+        {% block head %}{% endblock %}
     </head>
     <body class="{% block body_class %}{% endblock %}">
         {% block body %}{% endblock %}

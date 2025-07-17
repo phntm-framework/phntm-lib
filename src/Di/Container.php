@@ -22,7 +22,7 @@ class Container
     {
         if (self::$container === null) {
             $container = new LeagueContainer();
-            $container->delegate(new ReflectionContainer(true));
+            $container->delegate(new ReflectionContainer());
 
             $container->inflector(ContainerAwareInterface::class)
                 ->invokeMethod('setContainer', [ContainerInterface::class])

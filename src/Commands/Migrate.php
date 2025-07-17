@@ -4,6 +4,7 @@ namespace Phntm\Lib\Commands;
 
 use Phntm\Lib\Config;
 use Phntm\Lib\Db\Db;
+use Phntm\Lib\Config\Config as PhntmConfig;
 use Phntm\Lib\Di\Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,14 +19,20 @@ class Migrate extends Command
 {
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $modelPaths = Config::get()['db']['models'];
+        $container = Container::get();
+        $config = $container->get(PhntmConfig::class);
+        $modelPaths = $config->retrieve('db.models');
+        dump($modelPaths);
         // find 
         foreach ($modelPaths as $path => $namespace) {
-            $files = glob($path . '/*.php');
+            $files = glob(ROOT . $path . '*.php');
+            dump($path);
+            dump($files);
 
             foreach ($files as $file) {
                 $model = $namespace . '\\' . pathinfo($file, PATHINFO_FILENAME);
 
+                dump($model);
                 // if the class does not exist, skip it
                 if (!class_exists($model)) {
                     continue;
@@ -35,7 +42,6 @@ class Migrate extends Command
                     continue;
                 }
                 /** @var \Phntm\Lib\Model $model */
-
 
                 try {
                     $this->handleMigration($model, $output);

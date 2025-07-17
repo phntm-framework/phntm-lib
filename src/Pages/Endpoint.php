@@ -28,6 +28,7 @@ abstract class Endpoint implements
     use ContainerAwareTrait;
     use DebugAwareTrait;
     use RoutingUtils;
+    use Traits\HasContentType;
 
     public static bool $hideFromSitemap = false;
 

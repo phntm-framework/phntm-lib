@@ -7,7 +7,6 @@
         "symfony/cache": "^7.2",
         "symfony/routing": "^7.2",
         "symfony/console": "^7.2",
-        "symfony/http-foundation": "^7.2",
         "symfony/yaml": "^7.2",
         "twig/twig": "^3.18",
         "twig/cache-extra": "4.x-dev",

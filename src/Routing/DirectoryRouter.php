@@ -8,6 +8,7 @@ use Phntm\Lib\Infra\Debug\Aware\DebugAwareInterface;
 use Phntm\Lib\Infra\Debug\Aware\DebugAwareTrait;
 use Phntm\Lib\Pages\Endpoint;
 use Phntm\Lib\Pages\EndpointInterface;
+use Phntm\Lib\Pages\NotFoundPage;
 use Phntm\Lib\Routing\Cache\RouteCacheInterface;
 use Phntm\Lib\Routing\RouterInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,6 +17,8 @@ use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\Matcher\CompiledUrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
+use function boolval;
+use function get_declared_classes;
 
 /**
  * Handles routing and pages
@@ -32,7 +35,7 @@ class DirectoryRouter implements RouterInterface, ContainerAwareInterface, Debug
 
     private UrlMatcher $matcher;
 
-    public ?string $notFound = null;
+    public string|int $notFound = 404;
 
     protected RequestContext $requestContext;
 
@@ -83,6 +86,10 @@ class DirectoryRouter implements RouterInterface, ContainerAwareInterface, Debug
         $classes = $this->autoload();
 
         foreach ($classes as $pageClass => $path) {
+            if (is_a($pageClass, NotFoundPage::class, true)) {
+                $this->notFound = $pageClass;
+                continue;
+            }
             if (is_a($pageClass, Endpoint::class, true)) {
                 $pageClass::registerRoutes($this->routes);
             }
@@ -122,9 +129,7 @@ class DirectoryRouter implements RouterInterface, ContainerAwareInterface, Debug
             return $page;
 
         } catch (\Symfony\Component\Routing\Exception\ResourceNotFoundException $exception) {
-
-            // if matcher fails
-            return $this->notFound ? new $this->notFound : 404;
+            return $this->getContainer()->get($this->notFound) ?? 404;
         } catch (\Exception $exception) {
 
             dd($exception);
@@ -143,16 +148,16 @@ class DirectoryRouter implements RouterInterface, ContainerAwareInterface, Debug
      */
     protected function autoload(): array
     {
-        $cache = $this->cache->getItem('phntm.routing.router.autoload');
-        if ($cache->isHit()) {
-            return unserialize($cache->get());
+        $shouldCache = 'false' !== getenv('CACHE_ROUTES');
+        if ($shouldCache) {
+            $cache = $this->cache->getItem('phntm.routing.router.autoload');
+            if ($cache->isHit()) {
+                return unserialize($cache->get());
+            }
         }
 
-        $this->debug()->log('Autoloading classes', 'info');
-
-        $res = get_declared_classes();
         $autoloaderClassName = '';
-        foreach ( $res as $className) {
+        foreach (get_declared_classes() as $className) {
             if (strpos($className, 'ComposerAutoloaderInit') === 0) {
                 $autoloaderClassName = $className;
                 break;
@@ -165,9 +170,11 @@ class DirectoryRouter implements RouterInterface, ContainerAwareInterface, Debug
             return (strpos($key, "Pages\\") === 0);
         }, ARRAY_FILTER_USE_KEY);
 
-        $cache->set(serialize($classes));
-        $cache->expiresAfter(3600);
-        $this->cache->save($cache);
+        if ($shouldCache) {
+            $cache->set(serialize($classes));
+            $cache->expiresAfter(3600);
+            $this->cache->save($cache);
+        }
 
         return $classes;
     }

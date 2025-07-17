@@ -25,6 +25,11 @@ class Provider extends ModuleProvider
             DebugMiddleware::class,
             EndpointInterface::class,
             ResponseFactoryInterface::class,
+            UploadedFileFactoryInterface::class,
+            UriFactoryInterface::class,
+            StreamFactoryInterface::class,
+            ServerRequestCreatorInterface::class,
+            ServerRequestInterface::class,
         ];
         
         return in_array($id, $services);

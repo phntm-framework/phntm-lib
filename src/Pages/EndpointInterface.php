@@ -16,5 +16,7 @@ interface EndpointInterface
 
     public function setRequest(ServerRequestInterface $request): void;
     public function getRequest(bool $symfony = false): ServerRequestInterface;
+
+    public function getContentType(): string;
 }
 

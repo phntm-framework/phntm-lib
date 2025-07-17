@@ -9,8 +9,6 @@ use Psr\Http\Message\ServerRequestInterface as PsrRequest;
 
 abstract class Renderable extends Endpoint implements CanRender
 {
-    use Traits\HasContentType;
-
     protected TemplateManager $twig;
 
     protected array $view_variables = [];

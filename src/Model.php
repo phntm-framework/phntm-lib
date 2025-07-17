@@ -6,6 +6,7 @@ use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 use Phntm\Lib\Db\Aware\ConnectionAwareInterface;
 use Phntm\Lib\Db\Aware\ConnectionAwareTrait;
+use Phntm\Lib\Di\Container;
 use Phntm\Lib\Model\Attribute as Col;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -34,10 +35,6 @@ abstract class Model implements ContainerAwareInterface, ConnectionAwareInterfac
     protected bool $isPersisted = false;
 
     protected static Connection $db;
-
-    public function __construct(
-    ) {
-    }
 
     public function load(array $data): static
     {
@@ -241,7 +238,8 @@ abstract class Model implements ContainerAwareInterface, ConnectionAwareInterfac
 
     public static function all(): array
     {
-        $instance = $this->getContainer()->get(static::class);
+        $container = Container::get();
+        $instance = $container->getNew(static::class);
         $qb = static::db()->createQueryBuilder();
         $qb->select('id', ...$instance->getAttributeNames())
             ->from(static::getTableName())
@@ -253,7 +251,7 @@ abstract class Model implements ContainerAwareInterface, ConnectionAwareInterfac
 
         $models = [];
         while ($row = $result->fetchAssociative()) {
-            $instance = $this->getContainer()->get(static::class);
+            $instance = $container->getNew(static::class);
             $instance->load($row);
             $models[] = $instance;
         }

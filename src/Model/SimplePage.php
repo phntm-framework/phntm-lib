@@ -43,7 +43,10 @@ class SimplePage extends Model
         return [
             'title',
             'slug',
+            'image',
+            'content',
             'published_on',
+            'include_in_nav',
         ];
     }
 

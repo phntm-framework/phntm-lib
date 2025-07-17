@@ -20,8 +20,8 @@ class Router implements \Psr\Http\Server\MiddlewareInterface
     public function process(
         \Psr\Http\Message\ServerRequestInterface $request, 
         \Psr\Http\Server\RequestHandlerInterface $handler
-    ): \Psr\Http\Message\ResponseInterface {
-
+    ): \Psr\Http\Message\ResponseInterface
+    {
         $page = $this->router
             ->setRequest($request)
             ->dispatch()

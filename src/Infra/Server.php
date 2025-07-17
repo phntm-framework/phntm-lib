@@ -6,9 +6,6 @@ use Phntm\Lib\Cache\Provider as CacheModule;
 use Phntm\Lib\Config\Provider as ConfigModule;
 use Phntm\Lib\Db\Provider as DbModule;
 use Phntm\Lib\Di\ContainerAware;
-use Phntm\Lib\Http\Middleware\Dispatcher;
-use Phntm\Lib\Http\Middleware\Redirect;
-use Phntm\Lib\Http\Middleware\Router;
 use Phntm\Lib\Http\Provider as HttpModule;
 use Phntm\Lib\Images\Provider as ImageModule;
 use Phntm\Lib\Infra\Debug\Aware\DebugAwareInterface;
@@ -22,6 +19,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Middlewares\Whoops;
 use Middlewares\Debugbar as DebugMiddleware;
+use Symfony\Component\Yaml\Yaml;
 use function microtime;
 use function ob_clean;
 
@@ -36,76 +34,50 @@ class Server implements DebugAwareInterface, RequestHandlerInterface
 
     private array $middleware = [];
 
+    private array $bootstrap = [];
+
     public static string $config;
 
-    /**
-     * @param array<string> $modules
-     * @param array<class-string<MiddlewareInterface>> $middleware
-     * @param string|null $config
-     */
-    public function __construct(
-        array $modules = [],
-        array $middleware = [
-            Whoops::class,
-            DebugMiddleware::class,
-            Redirect::class,
-            Router::class,
-            Dispatcher::class,
-        ],
-        ?string $config = null
-    ) {
-        static::$config = $config;
+    private $start_time;
 
-        $this->provision($modules);
+    public function __construct() {
+        ob_start();
+        $this->start_time = microtime(true);
 
-        $this->debug()->startMeasure('server-init', 'Server Initialization');
+        define('PHNTM', '/vendor/phntm-framework/phntm-lib/');
+        $this->bootstrap = Yaml::parseFile(ROOT . '/bootstrap.yml');
 
-        if (!$this->debug()->enabled()) {
-            $middleware = array_filter($middleware, function ($item) {
-                $nonProd = [
-                    // Whoops::class,
-                    DebugMiddleware::class,
-                ];
-                return !in_array($item, $nonProd);
-            });
-        }
-
-        $this->middleware = array_map(
-            function ($middleware) {
-                $this->debug()->log('Middleware: ' . $middleware, 'middleware');
-                return $this->getContainer()->get($middleware);
-            },
-            $middleware
+        $this->provision(
+            $this->bootstrap['modules'] ?? [],
         );
 
-        $this->debug()->stopMeasure('server-init');
+        $this->middleware = $this->bootstrap['middleware'] ?? [];
     }
 
-    public function provision(
-        array $modules = [],
-    ): void {
-        // Dependency Injection Container
+    public function provision(array $modules = []): void {
+        if ($this->bootstrap['include_phntm_modules'] ?? true) {
+            $modules = array_merge(
+                $this->getDefaultModules(),
+                $modules,
+            );
+        }
 
-        $register_start_time = microtime(true);
         foreach ($modules as $module) {
             $this->registerModule($module);
         }
 
-        $register_end_time = microtime(true);
-
-
         $debugbar = $this->getContainer()->get(DebugBar::class);
         $this->setDebugBar($debugbar);
-
-        $this->debug()->getCollector('time')->addMeasure(
-            'Registering Modules',
-            $register_start_time,
-            $register_end_time,
-        );
     }
 
     public function run(): void
     {
+        $this->debug()->getCollector('time')->addMeasure(
+            'Server init',
+            $this->start_time,
+            microtime(true),
+        );
+
         $response = $this->handle(
             $this->getContainer()->get(ServerRequestInterface::class)
         );
@@ -141,7 +113,20 @@ class Server implements DebugAwareInterface, RequestHandlerInterface
     {
         $entry = current($this->middleware);
         next($this->middleware);
-        return $entry->process($request, $this);
+
+        if (
+            !$this->debug()->enabled()
+            && is_a($entry, DebugMiddleware::class, true)
+        ) {
+            $entry = current($this->middleware);
+            next($this->middleware);
+        }
+
+        if (is_string($entry)) {
+            $entryInstance = $this->getContainer()->get($entry);
+        }
+
+        return $entryInstance->process($request, $this);
     }
 
     public function loadServices(string $services): void
