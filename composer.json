@@ -19,7 +19,8 @@
         "doctrine/dbal": "^4.2",
         "spatie/image": "^3.8",
         "php-debugbar/php-debugbar": "^1.23",
-        "predis/predis": "^3.0"
+        "predis/predis": "^3.0",
+        "doctrine/orm": "^3.5"
     },
     "autoload": {
         "psr-4": {
